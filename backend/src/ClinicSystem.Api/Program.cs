@@ -1,0 +1,17 @@
+using ClinicSystem.Infrastructure;
+using ClinicSystem.Infrastructure.Identity;
+var builder=WebApplication.CreateBuilder(args);
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+var origins=builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()??["http://localhost:5173"];
+builder.Services.AddCors(o=>o.AddPolicy("Frontend",p=>p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+var app=builder.Build();
+if(app.Environment.IsDevelopment())app.MapOpenApi();
+if(!app.Environment.IsDevelopment())app.UseHttpsRedirection();
+app.UseCors("Frontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+await app.Services.SeedBootstrapOwnerAsync(app.Configuration);
+app.Run();
