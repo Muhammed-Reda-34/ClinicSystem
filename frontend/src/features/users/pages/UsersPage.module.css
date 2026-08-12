@@ -1,0 +1,249 @@
+.page {
+  display: grid;
+  gap: 18px;
+}
+
+.header {
+  margin-bottom: 2px;
+}
+
+.eyebrow {
+  margin-bottom: 6px;
+  color: var(--c-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin-bottom: 6px;
+  font-size: 30px;
+}
+
+.header p {
+  margin: 0;
+  color: var(--c-text-muted);
+}
+
+.formsGrid,
+.listsGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 20px;
+  background: var(--c-surface);
+  border:
+    1px solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.card h2 {
+  margin-bottom: 17px;
+  padding-bottom: 11px;
+  border-bottom:
+    1px solid #e8eff1;
+  font-size: 17px;
+}
+
+.form {
+  display: grid;
+  gap: 13px;
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+}
+
+.form label > span,
+.fieldset legend {
+  color: #415d66;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.form input,
+.form select {
+  min-height: 43px;
+  padding: 9px 11px;
+  color: var(--c-text);
+  background: #ffffff;
+  border:
+    1px solid #cddce1;
+  border-radius: 10px;
+}
+
+.fieldset {
+  margin: 0;
+  padding: 12px;
+  border:
+    1px solid var(--c-border);
+  border-radius: 11px;
+}
+
+.checkList {
+  display: grid;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+.checkRow {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  background: var(--c-surface-soft);
+  border-radius: 8px;
+}
+
+.checkRow input {
+  width: 16px;
+  min-height: 16px;
+  accent-color: var(--c-primary);
+}
+
+.primary {
+  min-height: 44px;
+  color: #ffffff;
+  background: var(--c-primary);
+  border: 0;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.list {
+  display: grid;
+  gap: 9px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--c-surface-soft);
+  border:
+    1px solid #e5edef;
+  border-radius: 10px;
+}
+
+.row > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.row strong,
+.row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row strong {
+  font-size: 12px;
+}
+
+.row small {
+  color: var(--c-text-muted);
+  font-size: 10px;
+}
+
+.badge {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.empty {
+  padding: 24px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .formsGrid,
+  .listsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.staffActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editAssignments {
+  min-height: 30px;
+  padding: 5px 8px;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border: 0;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.assignmentEditor {
+  display: grid;
+  gap: 6px;
+  margin-top: 9px;
+  padding: 9px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+}
+
+.assignmentEditor label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+}
+
+.assignmentEditor input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--c-primary);
+}
+
+.assignmentActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.assignmentActions button {
+  min-height: 30px;
+  padding: 5px 8px;
+  color: #fff;
+  background: var(--c-primary);
+  border: 0;
+  border-radius: 7px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.assignmentActions button:last-child {
+  color: var(--c-text);
+  background: #eef3f4;
+}

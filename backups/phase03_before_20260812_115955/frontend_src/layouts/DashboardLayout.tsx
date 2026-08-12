@@ -1,0 +1,2 @@
+import{NavLink,Outlet}from"react-router-dom";import{useAuth}from"../features/auth/AuthContext";
+export function DashboardLayout(){const{user,logout,hasRole}=useAuth();return <div className="shell" dir="rtl"><aside><h2>Clinic System</h2><NavLink to="/">لوحة التحكم</NavLink>{hasRole("Owner")&&<NavLink to="/users">المستخدمون</NavLink>}<div className="spacer"/><strong>{user?.fullName}</strong><button onClick={logout}>تسجيل الخروج</button></aside><main><Outlet/></main></div>}

@@ -61,4 +61,83 @@ public sealed class UserManagementService
         foreach(var id in ids)_db.StaffDoctorAssignments.Add(new(){StaffUserId=user.Id,DoctorId=id,IsActive=true,AssignedAtUtc=DateTime.UtcNow});
         await _db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return(true,null,user.Id);
     }
+
+
+public async Task<(bool Ok,string? Error)> ReplaceStaffDoctorsAsync(
+    Guid staffUserId,
+    IReadOnlyCollection<Guid> doctorIds,
+    CancellationToken ct)
+{
+    var ids = doctorIds.Distinct().ToArray();
+
+    if (ids.Length == 0)
+    {
+        return (false, "Select at least one doctor.");
+    }
+
+    var user = await _userManager.FindByIdAsync(
+        staffUserId.ToString());
+
+    if (user is null)
+    {
+        return (false, "Staff user was not found.");
+    }
+
+    var roles = await _userManager.GetRolesAsync(user);
+
+    if (!roles.Any(x => UserRoles.StaffRoles.Contains(x)))
+    {
+        return (false, "User is not Secretary or Nurse.");
+    }
+
+    var validDoctorCount =
+        await _db.Doctors.CountAsync(
+            x => ids.Contains(x.Id) && x.IsActive,
+            ct);
+
+    if (validDoctorCount != ids.Length)
+    {
+        return (false, "Invalid doctor selection.");
+    }
+
+    await using var tx =
+        await _db.Database.BeginTransactionAsync(ct);
+
+    var existing =
+        await _db.StaffDoctorAssignments
+        .Where(x => x.StaffUserId == staffUserId)
+        .ToListAsync(ct);
+
+    foreach (var assignment in existing)
+    {
+        assignment.IsActive =
+            ids.Contains(assignment.DoctorId);
+    }
+
+    var existingDoctorIds =
+        existing.Select(x => x.DoctorId).ToHashSet();
+
+    foreach (var doctorId in ids)
+    {
+        if (existingDoctorIds.Contains(doctorId))
+        {
+            continue;
+        }
+
+        _db.StaffDoctorAssignments.Add(
+            new StaffDoctorAssignment
+            {
+                StaffUserId = staffUserId,
+                DoctorId = doctorId,
+                IsActive = true,
+                AssignedAtUtc = DateTime.UtcNow
+            });
+    }
+
+    await _db.SaveChangesAsync(ct);
+    await tx.CommitAsync(ct);
+
+    return (true, null);
+}
+
 }
