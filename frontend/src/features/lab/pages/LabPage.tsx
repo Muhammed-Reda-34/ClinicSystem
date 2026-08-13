@@ -5,7 +5,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useLanguage } from "../../../i18n/LanguageContext";
+import { useAuth } from "../../auth/AuthContext";
 import { DentalChart } from "../../visits/components/DentalChart";
+import { getDentalServices } from "../../services/api/servicesApi";
 import {
   createLabExpense,
   createLabOrder,
@@ -45,6 +47,12 @@ const materials = [
 export function LabPage() {
   const { language } = useLanguage();
   const ar = language === "ar";
+  const { hasRole } = useAuth();
+
+  const canViewLabCosts =
+    hasRole("Owner")
+    || hasRole("Doctor");
+
   const client = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -69,6 +77,11 @@ export function LabPage() {
     notes: "",
   });
 
+  const [
+    customExpenseService,
+    setCustomExpenseService,
+  ] = useState("");
+
   const lookupQuery = useQuery({
     queryKey: ["lab-patient-lookup", search],
     queryFn: () => lookupLabPatient(search),
@@ -84,7 +97,27 @@ export function LabPage() {
   const expensesQuery = useQuery({
     queryKey: ["lab-expenses"],
     queryFn: getLabExpenses,
+    enabled: canViewLabCosts,
   });
+
+  const dentalServicesQuery = useQuery({
+    queryKey: ["dental-services", "lab-selector"],
+    queryFn: () => getDentalServices(false),
+    staleTime: 60_000,
+  });
+
+  const serviceGroups = useMemo(() => {
+    const map = new Map<string, typeof dentalServicesQuery.data>();
+
+    for (const service of dentalServicesQuery.data ?? []) {
+      const list = map.get(service.category) ?? [];
+      list.push(service);
+      map.set(service.category, list);
+    }
+
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b, ar ? "ar" : "en"));
+  }, [dentalServicesQuery.data, ar]);
 
   const selectedDoctorId = selectedVisit?.doctorId ?? null;
 
@@ -143,7 +176,10 @@ export function LabPage() {
         doctorId: selectedVisit.doctorId,
         visitId: selectedVisit.visitId,
         labOrderId: null,
-        serviceOrItemName: expenseForm.serviceOrItemName,
+        serviceOrItemName:
+          expenseForm.serviceOrItemName === "__OTHER__"
+            ? customExpenseService.trim()
+            : expenseForm.serviceOrItemName,
         amount: Number(expenseForm.amount),
         expenseDateUtc: new Date().toISOString(),
         notes: expenseForm.notes || null,
@@ -155,6 +191,7 @@ export function LabPage() {
         amount: 0,
         notes: "",
       });
+      setCustomExpenseService("");
       await refresh();
     },
   });
@@ -206,7 +243,17 @@ export function LabPage() {
       </header>
 
       <section className={styles.lookupCard}>
-        <h2>{ar ? "1. اختر المريض والزيارة" : "1. Select patient and visit"}</h2>
+        <div className={styles.stepHeader}>
+          <span>01</span>
+          <div>
+            <h2>{ar ? "اختر المريض والزيارة" : "Select patient and visit"}</h2>
+            <p>
+              {ar
+                ? "ابدأ بكود المريض أو رقم الاستمارة أو الاسم، وبعدها اختر الزيارة المرتبطة بالعمل."
+                : "Start with patient code, form number or name, then choose the linked visit."}
+            </p>
+          </div>
+        </div>
 
         <label className={styles.searchField}>
           <span>{ar ? "كود المريض / رقم الاستمارة / الاسم" : "Patient code / form / name"}</span>
@@ -314,14 +361,25 @@ export function LabPage() {
         )}
       </section>
 
-      <div className={styles.twoColumns}>
+      {canViewLabCosts ? (
+        <div className={styles.twoColumns}>
         <form className={styles.card} onSubmit={submitExpense}>
-          <h2>{ar ? "2. تسجيل تكلفة للمعمل" : "2. Record lab expense"}</h2>
+          <div className={styles.stepHeader}>
+            <span>02</span>
+            <div>
+              <h2>{ar ? "تسجيل تكلفة المعمل" : "Record lab expense"}</h2>
+              <p>
+                {ar
+                  ? "اختر الخدمة من القائمة، ثم اكتب تكلفة المعمل الفعلية. السعر هنا تكلفة على العيادة وليس سعر المريض."
+                  : "Choose the service, then enter the actual lab cost. This is clinic cost, not the patient price."}
+              </p>
+            </div>
+          </div>
           <p className={styles.contextText}>{activeContext || "—"}</p>
 
           <label>
             <span>{ar ? "الصنف أو الخدمة" : "Item / service"}</span>
-            <input
+            <select
               required
               value={expenseForm.serviceOrItemName}
               onChange={e =>
@@ -330,8 +388,43 @@ export function LabPage() {
                   serviceOrItemName: e.target.value,
                 })
               }
-            />
+            >
+              <option value="">
+                {ar ? "اختر من قائمة الخدمات" : "Choose from services"}
+              </option>
+
+              {serviceGroups.map(([category, services]) => (
+                <optgroup key={category} label={category}>
+                  {services?.map(service => (
+                    <option
+                      key={service.id}
+                      value={ar ? service.nameAr : (service.nameEn || service.nameAr)}
+                    >
+                      {ar ? service.nameAr : (service.nameEn || service.nameAr)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+
+              <option value="__OTHER__">
+                {ar ? "أخرى - إدخال يدوي" : "Other - manual entry"}
+              </option>
+            </select>
           </label>
+
+          {expenseForm.serviceOrItemName === "__OTHER__" && (
+            <label>
+              <span>{ar ? "اكتب الصنف" : "Custom item"}</span>
+              <input
+                required
+                value={customExpenseService}
+                placeholder={ar ? "مثال: طربوش خاص / شغل خارجي..." : "e.g. custom crown / external work..."}
+                onChange={e =>
+                  setCustomExpenseService(e.target.value)
+                }
+              />
+            </label>
+          )}
 
           <label>
             <span>{ar ? "القيمة" : "Amount"}</span>
@@ -368,6 +461,11 @@ export function LabPage() {
             disabled={
               !selectedPatient
               || !selectedVisit
+              || !expenseForm.serviceOrItemName
+              || (
+                expenseForm.serviceOrItemName === "__OTHER__"
+                && !customExpenseService.trim()
+              )
               || expenseMutation.isPending
             }
           >
@@ -393,6 +491,19 @@ export function LabPage() {
           </div>
         </section>
       </div>
+      ) : (
+        <section className={styles.operationalNotice}>
+          <strong>
+            {ar ? "وضع التشغيل للسكرتيرة / الممرضة" : "Staff operational mode"}
+          </strong>
+          <p>
+            {ar
+              ? "يمكنك اختيار المريض والزيارة وإنشاء أمر المعمل ومتابعة تفاصيل الشغل، لكن تكلفة المعمل والمصروفات المالية مخفية من هذا الحساب."
+              : "You can select the patient and visit, create lab orders and manage the work details, while lab cost and financial expense data stay hidden."}
+          </p>
+        </section>
+      )}
+
 
       <form className={styles.orderCard} onSubmit={submitOrder}>
         <div className={styles.orderHeader}>

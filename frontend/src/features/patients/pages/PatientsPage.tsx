@@ -48,7 +48,8 @@ export function PatientsPage() {
   const canEdit =
     hasRole("Owner")
     || hasRole("Doctor")
-    || hasRole("Secretary");
+    || hasRole("Secretary")
+    || hasRole("Nurse");
 
   const queryClient =
     useQueryClient();

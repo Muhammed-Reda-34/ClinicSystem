@@ -64,8 +64,39 @@ public sealed class VisitsController : ControllerBase
                 cancellationToken));
     }
 
+    [HttpPut("{visitId:guid}/follow-up/completed")]
+    public async Task<IActionResult> MarkFollowUpCompleted(
+        Guid visitId,
+        CancellationToken cancellationToken)
+    {
+        var scope =
+            await ResolveScopeAsync(
+                cancellationToken);
+
+        var result =
+            await _visits.MarkFollowUpCompletedAsync(
+                visitId,
+                scope,
+                User.GetUserIdOrThrow(),
+                HttpContext.Connection
+                    .RemoteIpAddress
+                    ?.ToString(),
+                cancellationToken);
+
+        return result.Succeeded
+            ? NoContent()
+            : NotFound(
+                new
+                {
+                    code =
+                        result.ErrorCode,
+                    message =
+                        result.ErrorMessage
+                });
+    }
+
     [HttpGet("debts")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> Debts(
         CancellationToken cancellationToken)
     {
@@ -78,7 +109,7 @@ public sealed class VisitsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> Create(
         CreatePatientVisitRequest request,
         CancellationToken cancellationToken)
@@ -128,7 +159,7 @@ public sealed class VisitsController : ControllerBase
     }
 
     [HttpPost("{visitId:guid}/payments")]
-    [Authorize(Roles = "Owner,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> AddPayment(
         Guid visitId,
         AddPaymentRequest request,

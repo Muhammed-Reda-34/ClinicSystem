@@ -1,0 +1,196 @@
+.chart {
+  padding: 18px;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 15px;
+}
+
+.header h3 {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.header p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 11px;
+}
+
+.modeSwitch {
+  display: inline-flex;
+  gap: 5px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+
+.modeSwitch button {
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--c-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.modeActive {
+  color: var(--c-primary-strong) !important;
+  background: var(--c-primary-soft) !important;
+}
+
+.rows {
+  overflow-x: auto;
+  padding: 8px 4px;
+}
+
+.toothRow {
+  min-width: 850px;
+  display: grid;
+  grid-template-columns:
+    repeat(16, minmax(44px, 1fr));
+  gap: 4px;
+}
+
+.rowLabel {
+  min-width: 850px;
+  padding: 5px 0;
+  color: var(--c-text-muted);
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.midline {
+  min-width: 850px;
+  height: 1px;
+  margin: 9px 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #a7bbc1 12%,
+      #a7bbc1 88%,
+      transparent
+    );
+}
+
+.toothButton {
+  min-width: 44px;
+  padding: 4px 2px 7px;
+  color: #4d6870;
+  background: #fff;
+  border: 1px solid #d4e1e5;
+  border-radius: 9px;
+}
+
+.toothButton span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.toothButton svg {
+  width: 29px;
+  height: 36px;
+  margin: auto;
+}
+
+.glyph {
+  fill: #fff;
+  stroke: #49636c;
+  stroke-width: 1.6;
+}
+
+.glyphSelected {
+  fill: #caefea;
+  stroke: var(--c-primary);
+  stroke-width: 2;
+}
+
+.toothSelected {
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border-color: #93c8d3;
+}
+
+.archWrap {
+  overflow-x: auto;
+}
+
+.archSvg {
+  width: min(700px, 100%);
+  min-width: 520px;
+  height: auto;
+  margin: auto;
+}
+
+.archGuide {
+  fill: none;
+  stroke: #d2dfe3;
+  stroke-width: 1.2;
+  stroke-dasharray: 5 5;
+}
+
+.archTooth {
+  cursor: pointer;
+  outline: none;
+}
+
+.archShape {
+  fill: #fff;
+  stroke: #49636c;
+  stroke-width: 1.5;
+}
+
+.archSelected {
+  fill: #caefea;
+  stroke: var(--c-primary);
+  stroke-width: 2.2;
+}
+
+.archLabel {
+  fill: #415d66;
+  font-size: 9px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.archCenterText {
+  fill: #94aab1;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.selectedList {
+  margin-top: 12px;
+  padding: 10px 12px;
+  color: #48626b;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+.selectedList strong {
+  color: var(--c-primary-strong);
+}
+
+@media (max-width: 760px) {
+  .header {
+    flex-direction: column;
+  }
+}

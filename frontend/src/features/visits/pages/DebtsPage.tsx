@@ -38,7 +38,9 @@ export function DebtsPage() {
 
   const canAddPayment =
     hasRole("Owner")
-    || hasRole("Secretary");
+    || hasRole("Doctor")
+    || hasRole("Secretary")
+    || hasRole("Nurse");
 
   const queryClient =
     useQueryClient();

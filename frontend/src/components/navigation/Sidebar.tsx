@@ -23,6 +23,12 @@ import {
 import {
   getClinicSettings,
 } from "../../features/settings/api/settingsApi";
+import {
+  getPendingApprovalCount,
+} from "../../features/approvals/api/approvalsApi";
+import {
+  DoctorAvatar,
+} from "../../features/profile/components/DoctorAvatar";
 import styles from "./Sidebar.module.css";
 
 type NavItem = {
@@ -66,6 +72,7 @@ const items: NavItem[] = [
       "Owner",
       "Doctor",
       "Secretary",
+      "Nurse",
     ],
   },
   {
@@ -87,6 +94,15 @@ const items: NavItem[] = [
     to: "/inventory",
     label: "inventory",
     icon: "inventory",
+  },
+  {
+    to: "/approvals",
+    label: "approvals",
+    icon: "audit",
+    roles: [
+      "Owner",
+      "Doctor",
+    ],
   },
   {
     to: "/users",
@@ -113,11 +129,22 @@ const items: NavItem[] = [
     to: "/settings",
     label: "settings",
     icon: "settings",
-    roles: ["Owner"],
+    roles: [
+      "Owner",
+      "Doctor",
+    ],
   },
 ];
 
-export function Sidebar() {
+type Props = {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+};
+
+export function Sidebar({
+  mobileOpen = false,
+  onClose,
+}: Props) {
   const {
     user,
     hasRole,
@@ -142,17 +169,26 @@ export function Sidebar() {
 
   const todayBounds = (() => {
     const now = new Date();
-    const start = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+
+    const start =
+      new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+
+    const end =
+      new Date(start);
+
+    end.setDate(
+      end.getDate() + 1,
     );
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
 
     return {
-      fromUtc: start.toISOString(),
-      toUtc: end.toISOString(),
+      fromUtc:
+        start.toISOString(),
+      toUtc:
+        end.toISOString(),
     };
   })();
 
@@ -167,16 +203,43 @@ export function Sidebar() {
           todayBounds.fromUtc,
           todayBounds.toUtc,
         ),
-      staleTime: 60_000,
+      staleTime:
+        30_000,
+    });
+
+  const approvalCountQuery =
+    useQuery({
+      queryKey:
+        ["approval-count"],
+      queryFn:
+        getPendingApprovalCount,
+      enabled:
+        hasRole("Owner")
+        || hasRole("Doctor"),
+      staleTime:
+        30_000,
     });
 
   const todayFollowUpsCount =
     followUpsQuery.data
-      ?.length
+      ?.filter(
+        item =>
+          !item.followUpCompletedAtUtc,
+      )
+      .length
     ?? 0;
 
   return (
-    <aside className={styles.sidebar}>
+    <aside
+      className={[
+        styles.sidebar,
+        mobileOpen
+          ? styles.mobileOpen
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className={styles.brandBlock}>
         <div className={styles.brandMark}>
           BD
@@ -193,6 +256,15 @@ export function Sidebar() {
             Dental Clinic System
           </div>
         </div>
+
+        <button
+          type="button"
+          className={styles.mobileClose}
+          onClick={onClose}
+          aria-label="Close navigation"
+        >
+          ×
+        </button>
       </div>
 
       <nav
@@ -211,13 +283,28 @@ export function Sidebar() {
               return null;
             }
 
+            const badge =
+              item.to
+                === "/follow-ups"
+                ? todayFollowUpsCount
+                : item.to
+                    === "/approvals"
+                    ? (
+                      approvalCountQuery
+                        .data
+                      ?? 0
+                    )
+                    : 0;
+
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={
-                  item.to === "/"
+                  item.to
+                  === "/"
                 }
+                onClick={onClose}
                 className={({
                   isActive,
                 }) =>
@@ -227,9 +314,7 @@ export function Sidebar() {
                       ? styles.active
                       : "",
                   ]
-                    .filter(
-                      Boolean,
-                    )
+                    .filter(Boolean)
                     .join(" ")
                 }
               >
@@ -241,18 +326,14 @@ export function Sidebar() {
                 </span>
 
                 <span className={styles.navLabel}>
-                  {t(
-                    item.label,
-                  )}
+                  {t(item.label)}
                 </span>
 
-                {item.to === "/follow-ups"
-                  && todayFollowUpsCount > 0
-                  && (
-                    <span className={styles.navBadge}>
-                      {todayFollowUpsCount}
-                    </span>
-                  )}
+                {badge > 0 && (
+                  <span className={styles.navBadge}>
+                    {badge}
+                  </span>
+                )}
               </NavLink>
             );
           },
@@ -260,13 +341,9 @@ export function Sidebar() {
       </nav>
 
       <div className={styles.accountCard}>
-        <div className={styles.avatar}>
-          {user?.fullName
-            ?.trim()
-            .charAt(0)
-            .toUpperCase()
-            || "U"}
-        </div>
+        <DoctorAvatar
+          size="small"
+        />
 
         <div className={styles.accountInfo}>
           <strong>

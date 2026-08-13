@@ -114,3 +114,89 @@ fieldset {
   font-size: 9px;
   line-height: 1.55;
 }
+
+
+.stepHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.stepHeader > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.stepHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.stepHeader h2 {
+  margin: 0 !important;
+}
+
+.stepHeader p {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .lookupCard,
+  .card,
+  .orderCard {
+    padding: 15px;
+  }
+
+  .twoColumns,
+  .orderGrid,
+  .searchResults,
+  .smallGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .patientContext {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .ordersList article {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.operationalNotice {
+  padding: 14px 16px;
+  color: var(--c-primary-strong);
+  background: var(--c-primary-soft);
+  border: 1px solid #cde5ea;
+  border-radius: 11px;
+}
+
+.operationalNotice {
+  display: grid;
+  gap: 4px;
+}
+
+.operationalNotice strong {
+  font-size: 11px;
+}
+
+.operationalNotice p {
+  margin: 0;
+  color: var(--c-text-muted);
+  line-height: 1.65;
+  font-size: 9px;
+}

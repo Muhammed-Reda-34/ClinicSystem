@@ -10,6 +10,9 @@ import { useDoctorContext } from "../../context/DoctorContext";
 import { useLanguage } from "../../../i18n/LanguageContext";
 import { getPatient } from "../../patients/api/patientsApi";
 import {
+  requestAttachmentDeletion,
+} from "../../approvals/api/approvalsApi";
+import {
   addClinicalNote,
   deletePatientAttachment,
   downloadPatientAttachment,
@@ -50,8 +53,30 @@ export function PatientRecordsPage() {
   } = useDoctorContext();
   const client = useQueryClient();
 
-  const canUseClinicalNotes =
-    hasRole("Owner") || hasRole("Doctor");
+  const isOwner =
+    hasRole("Owner");
+
+  const isDoctor =
+    hasRole("Doctor");
+
+  const isSecretary =
+    hasRole("Secretary");
+
+  const isNurse =
+    hasRole("Nurse");
+
+  const canReadClinicalNotes =
+    isOwner
+    || isDoctor
+    || isSecretary
+    || isNurse;
+
+  const canWriteClinicalNotes =
+    isOwner
+    || isDoctor;
+
+  const canDeleteDirectly =
+    isOwner || isDoctor;
 
   const patientQuery = useQuery({
     queryKey: ["patient", patientId],
@@ -68,13 +93,18 @@ export function PatientRecordsPage() {
   const notesQuery = useQuery({
     queryKey: ["patient-clinical-notes", patientId],
     queryFn: () => getClinicalNotes(patientId!),
-    enabled: Boolean(patientId) && canUseClinicalNotes,
+    enabled: Boolean(patientId) && canReadClinicalNotes,
   });
 
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState(1);
   const [fileNotes, setFileNotes] = useState("");
   const [noteText, setNoteText] = useState("");
+
+  const [
+    deletionMessage,
+    setDeletionMessage,
+  ] = useState("");
 
   const noteDoctorId =
     selectedDoctor?.doctorId
@@ -83,6 +113,9 @@ export function PatientRecordsPage() {
 
   const currentDoctorId =
     selectedDoctor?.doctorId
+    ?? patientQuery.data
+      ?.doctors[0]
+      ?.doctorId
     ?? null;
 
   const uploadMutation = useMutation({
@@ -128,6 +161,73 @@ export function PatientRecordsPage() {
       });
     },
   });
+
+  const directDeleteMutation =
+    useMutation({
+      mutationFn:
+        async (
+          attachmentId: string,
+        ) => {
+          await deletePatientAttachment(
+            patientId!,
+            attachmentId,
+          );
+        },
+      onSuccess:
+        async () => {
+          setDeletionMessage("");
+
+          await client
+            .invalidateQueries({
+              queryKey:
+                [
+                  "patient-attachments",
+                  patientId,
+                ],
+            });
+        },
+    });
+
+  const requestDeleteMutation =
+    useMutation({
+      mutationFn:
+        async (
+          attachmentId: string,
+        ) => {
+          if (!currentDoctorId) {
+            throw new Error(
+              "Doctor is required",
+            );
+          }
+
+          return await requestAttachmentDeletion(
+            attachmentId,
+            currentDoctorId,
+          );
+        },
+      onSuccess:
+        async result => {
+          setDeletionMessage(
+            ar
+              ? `تم إرسال طلب حذف الملف للطبيب، وصالح لمدة ${result.expiresInHours} ساعة.`
+              : `File deletion request sent to the doctor and is valid for ${result.expiresInHours} hours.`,
+          );
+
+          await client
+            .invalidateQueries({
+              queryKey:
+                ["approval-count"],
+            });
+        },
+      onError:
+        () => {
+          setDeletionMessage(
+            ar
+              ? "تعذر إرسال طلب حذف الملف. اختر الطبيب الحالي من أعلى الصفحة."
+              : "Unable to request file deletion. Select the current doctor first.",
+          );
+        },
+    });
 
   const patient = patientQuery.data;
 
@@ -228,7 +328,7 @@ export function PatientRecordsPage() {
           </form>
         </section>
 
-        {canUseClinicalNotes && (
+        {canWriteClinicalNotes && (
           <section className={styles.card}>
             <h2>{ar ? "ملاحظة طبيب" : "Doctor clinical note"}</h2>
 
@@ -265,6 +365,12 @@ export function PatientRecordsPage() {
       <section className={styles.card}>
         <h2>{ar ? "ملفات المريض" : "Patient attachments"}</h2>
 
+        {deletionMessage && (
+          <div className={styles.approvalMessage}>
+            {deletionMessage}
+          </div>
+        )}
+
         <div className={styles.attachments}>
           {attachmentsQuery.data?.map(item => (
             <article key={item.id}>
@@ -300,21 +406,32 @@ export function PatientRecordsPage() {
                   {ar ? "تحميل" : "Download"}
                 </button>
 
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={async () => {
-                    await deletePatientAttachment(
-                      patientId!,
-                      item.id,
-                    );
-                    await client.invalidateQueries({
-                      queryKey: ["patient-attachments", patientId],
-                    });
-                  }}
-                >
-                  {ar ? "حذف" : "Delete"}
-                </button>
+                {canDeleteDirectly ? (
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    disabled={directDeleteMutation.isPending}
+                    onClick={() =>
+                      directDeleteMutation.mutate(item.id)
+                    }
+                  >
+                    {ar ? "حذف" : "Delete"}
+                  </button>
+                ) : (isSecretary || isNurse) ? (
+                  <button
+                    type="button"
+                    className={styles.requestDeleteButton}
+                    disabled={
+                      requestDeleteMutation.isPending
+                      || !currentDoctorId
+                    }
+                    onClick={() =>
+                      requestDeleteMutation.mutate(item.id)
+                    }
+                  >
+                    {ar ? "طلب حذف" : "Request delete"}
+                  </button>
+                ) : null}
               </div>
             </article>
           ))}
@@ -327,7 +444,7 @@ export function PatientRecordsPage() {
         </div>
       </section>
 
-      {canUseClinicalNotes && (
+      {canReadClinicalNotes && (
         <section className={styles.card}>
           <h2>{ar ? "سجل ملاحظات الأطباء" : "Doctor notes history"}</h2>
 

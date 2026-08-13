@@ -49,7 +49,7 @@ public sealed class OperationsController : ControllerBase
     }
 
     [HttpPost("patients/{patientId:guid}/remove-blacklist")]
-    [Authorize(Roles = "Owner,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> RemoveBlacklist(
         Guid patientId,
         CancellationToken cancellationToken)
@@ -100,7 +100,7 @@ public sealed class OperationsController : ControllerBase
     }
 
     [HttpPut("appointments/{appointmentId:guid}/reschedule")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> RescheduleAppointment(
         Guid appointmentId,
         RescheduleAppointmentRequest request,

@@ -54,7 +54,9 @@ export function BlacklistPage() {
 
   const canRemove =
     hasRole("Owner")
-    || hasRole("Secretary");
+    || hasRole("Doctor")
+    || hasRole("Secretary")
+    || hasRole("Nurse");
 
   const [search, setSearch] =
     useState("");

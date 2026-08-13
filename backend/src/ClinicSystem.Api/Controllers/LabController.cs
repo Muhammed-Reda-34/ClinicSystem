@@ -102,7 +102,7 @@ public sealed class LabController : ControllerBase
     }
 
     [HttpGet("expenses")]
-    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    [Authorize(Roles = "Owner,Doctor")]
     public async Task<IActionResult> GetExpenses(
         [FromQuery] DateTime? fromUtc,
         [FromQuery] DateTime? toUtc,
@@ -123,7 +123,7 @@ public sealed class LabController : ControllerBase
     }
 
     [HttpPost("expenses")]
-    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    [Authorize(Roles = "Owner,Doctor")]
     public async Task<IActionResult> CreateExpense(
         CreateLabExpenseRequest request,
         CancellationToken cancellationToken)

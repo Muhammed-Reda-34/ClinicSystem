@@ -5,7 +5,7 @@ export type InventoryItem = {
   unit: string;
   currentQuantity: number;
   reorderLevel: number;
-  averageUnitCost: number;
+  averageUnitCost: number | null;
   isLowStock: boolean;
   isActive: boolean;
 };
@@ -18,8 +18,8 @@ export type InventoryTransaction = {
   quantity: number;
   quantityBefore: number;
   quantityAfter: number;
-  unitCostSnapshot: number;
-  estimatedCost: number;
+  unitCostSnapshot: number | null;
+  estimatedCost: number | null;
   notes: string | null;
   createdByUserId: string;
   createdAtUtc: string;

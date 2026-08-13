@@ -224,7 +224,8 @@ public static class DependencyInjection
                     policy.RequireRole(
                         UserRoles.Owner,
                         UserRoles.Doctor,
-                        UserRoles.Secretary));
+                        UserRoles.Secretary,
+                        UserRoles.Nurse));
 
         return services;
     }

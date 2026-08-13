@@ -29,8 +29,13 @@ export function InventoryPage() {
   const canCreate = hasRole("Owner");
   const canTransact =
     hasRole("Owner")
+    || hasRole("Doctor")
     || hasRole("Secretary")
     || hasRole("Nurse");
+
+  const canViewCosts =
+    hasRole("Owner")
+    || hasRole("Doctor");
 
   const itemsQuery = useQuery({
     queryKey: ["inventory-items"],
@@ -148,6 +153,32 @@ export function InventoryPage() {
         </div>
       </header>
 
+      <section className={styles.explainer}>
+        <article>
+          <span className={styles.stepNumber}>01</span>
+          <div>
+            <strong>{ar ? "إضافة صنف = تعريف الحاجة لأول مرة" : "Add item = define a stock item once"}</strong>
+            <p>
+              {ar
+                ? "مثال: جوانتي لاتكس. تسجل الاسم، الوحدة (علبة)، الرصيد الموجود وقت البداية، حد النقص، ومتوسط تكلفة العلبة. لا تعيد إضافة نفس الصنف كل مرة تشتريه."
+                : "Example: latex gloves. Define its name, unit, opening quantity, reorder level and average unit cost once."}
+            </p>
+          </div>
+        </article>
+
+        <article>
+          <span className={styles.stepNumber}>02</span>
+          <div>
+            <strong>{ar ? "تسجيل حركة = تغيير كمية صنف موجود" : "Record transaction = change an existing item's quantity"}</strong>
+            <p>
+              {ar
+                ? "اشتريت 3 علب؟ اختر «توريد +3». استخدمت علبة؟ اختر «استهلاك 1». حصل فرق في الجرد الفعلي؟ استخدم «تسوية زيادة/نقص» مع ملاحظة."
+                : "Bought 3 boxes? Stock in +3. Used 1 box? Consumption 1. Use adjustments only for physical count differences."}
+            </p>
+          </div>
+        </article>
+      </section>
+
       <div className={styles.summaryGrid}>
         <article>
           <span>{ar ? "عدد الأصناف" : "Items"}</span>
@@ -163,7 +194,12 @@ export function InventoryPage() {
         <div className={styles.formsGrid}>
           {canCreate && (
             <form className={styles.card} onSubmit={submitItem}>
-              <h2>{ar ? "إضافة صنف" : "Add item"}</h2>
+              <h2>{ar ? "إضافة صنف جديد للمخزن" : "Add new inventory item"}</h2>
+              <p className={styles.formHelp}>
+                {ar
+                  ? "استخدمها مرة واحدة فقط عند تعريف مستلزم جديد."
+                  : "Use this only when defining a new supply item."}
+              </p>
 
               <div className={styles.formGrid}>
                 <label>
@@ -257,7 +293,12 @@ export function InventoryPage() {
 
           {canTransact && (
             <form className={styles.card} onSubmit={submitTransaction}>
-              <h2>{ar ? "تسجيل حركة" : "Record transaction"}</h2>
+              <h2>{ar ? "تسجيل حركة على صنف موجود" : "Record movement on existing item"}</h2>
+              <p className={styles.formHelp}>
+                {ar
+                  ? "أي توريد أو استهلاك أو فرق جرد بعد إنشاء الصنف يسجل هنا."
+                  : "All stock-in, consumption and stock-count adjustments are recorded here."}
+              </p>
 
               <div className={styles.formGrid}>
                 <label className={styles.full}>
@@ -307,18 +348,20 @@ export function InventoryPage() {
                   />
                 </label>
 
-                <label>
-                  <span>{ar ? "تكلفة الوحدة - اختياري" : "Unit cost - optional"}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={txForm.unitCost}
-                    onChange={e =>
-                      setTxForm({ ...txForm, unitCost: e.target.value })
-                    }
-                  />
-                </label>
+                {canViewCosts && (
+                  <label>
+                    <span>{ar ? "تكلفة الوحدة - اختياري" : "Unit cost - optional"}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={txForm.unitCost}
+                      onChange={e =>
+                        setTxForm({ ...txForm, unitCost: e.target.value })
+                      }
+                    />
+                  </label>
+                )}
 
                 <label className={styles.full}>
                   <span>{ar ? "ملاحظات" : "Notes"}</span>
@@ -351,7 +394,9 @@ export function InventoryPage() {
                 <th>{ar ? "الفئة" : "Category"}</th>
                 <th>{ar ? "الكمية" : "Quantity"}</th>
                 <th>{ar ? "حد الطلب" : "Reorder"}</th>
-                <th>{ar ? "تكلفة الوحدة" : "Unit cost"}</th>
+                {canViewCosts && (
+                  <th>{ar ? "تكلفة الوحدة" : "Unit cost"}</th>
+                )}
                 <th>{ar ? "الحالة" : "Status"}</th>
               </tr>
             </thead>
@@ -362,7 +407,13 @@ export function InventoryPage() {
                   <td>{item.category}</td>
                   <td>{item.currentQuantity} {item.unit}</td>
                   <td>{item.reorderLevel}</td>
-                  <td>{item.averageUnitCost.toLocaleString()}</td>
+                  {canViewCosts && (
+                    <td>
+                      {item.averageUnitCost !== null
+                        ? item.averageUnitCost.toLocaleString()
+                        : "—"}
+                    </td>
+                  )}
                   <td>
                     <span className={
                       item.isLowStock ? styles.lowBadge : styles.okBadge
@@ -396,7 +447,13 @@ export function InventoryPage() {
                 <span>{tx.quantityBefore} → {tx.quantityAfter}</span>
                 <small>{tx.notes || "—"}</small>
               </div>
-              <strong>{tx.estimatedCost.toLocaleString()} EGP</strong>
+              {canViewCosts && (
+                <strong>
+                  {tx.estimatedCost !== null
+                    ? `${tx.estimatedCost.toLocaleString()} EGP`
+                    : "—"}
+                </strong>
+              )}
             </div>
           ))}
         </div>

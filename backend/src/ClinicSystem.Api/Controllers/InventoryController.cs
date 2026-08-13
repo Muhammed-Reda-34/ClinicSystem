@@ -27,10 +27,32 @@ public sealed class InventoryController : ControllerBase
         [FromQuery] bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        return Ok(
+        var items =
             await _service.GetItemsAsync(
                 includeInactive,
-                cancellationToken));
+                cancellationToken);
+
+        var canViewCosts =
+            User.IsInRole("Owner")
+            || User.IsInRole("Doctor");
+
+        return Ok(
+            items.Select(
+                item => new
+                {
+                    item.Id,
+                    item.Name,
+                    item.Category,
+                    item.Unit,
+                    item.CurrentQuantity,
+                    item.ReorderLevel,
+                    AverageUnitCost =
+                        canViewCosts
+                            ? item.AverageUnitCost
+                            : (decimal?)null,
+                    item.IsLowStock,
+                    item.IsActive
+                }));
     }
 
     [HttpGet("transactions")]
@@ -42,13 +64,41 @@ public sealed class InventoryController : ControllerBase
         [FromQuery] int take = 100,
         CancellationToken cancellationToken = default)
     {
-        return Ok(
+        var transactions =
             await _service.GetTransactionsAsync(
                 itemId,
                 fromUtc,
                 toUtc,
                 take,
-                cancellationToken));
+                cancellationToken);
+
+        var canViewCosts =
+            User.IsInRole("Owner")
+            || User.IsInRole("Doctor");
+
+        return Ok(
+            transactions.Select(
+                transaction => new
+                {
+                    transaction.Id,
+                    transaction.InventoryItemId,
+                    transaction.ItemName,
+                    transaction.Type,
+                    transaction.Quantity,
+                    transaction.QuantityBefore,
+                    transaction.QuantityAfter,
+                    UnitCostSnapshot =
+                        canViewCosts
+                            ? transaction.UnitCostSnapshot
+                            : (decimal?)null,
+                    EstimatedCost =
+                        canViewCosts
+                            ? transaction.EstimatedCost
+                            : (decimal?)null,
+                    transaction.Notes,
+                    transaction.CreatedByUserId,
+                    transaction.CreatedAtUtc
+                }));
     }
 
     [HttpPost]
@@ -119,7 +169,7 @@ public sealed class InventoryController : ControllerBase
     }
 
     [HttpPost("{itemId:guid}/transactions")]
-    [Authorize(Roles = "Owner,Secretary,Nurse")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> RecordTransaction(
         Guid itemId,
         RecordInventoryTransactionRequest request,
@@ -131,7 +181,12 @@ public sealed class InventoryController : ControllerBase
                 new RecordInventoryTransactionCommand(
                     request.Type,
                     request.Quantity,
-                    request.UnitCost,
+                    (
+                        User.IsInRole("Owner")
+                        || User.IsInRole("Doctor")
+                    )
+                        ? request.UnitCost
+                        : null,
                     request.Notes),
                 User.GetUserIdOrThrow(),
                 GetClientIp(),

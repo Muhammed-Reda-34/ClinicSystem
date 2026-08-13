@@ -11,6 +11,9 @@ import {
   OwnerRoute,
 } from "../features/auth/OwnerRoute";
 import {
+  OwnerDoctorRoute,
+} from "../features/auth/OwnerDoctorRoute";
+import {
   LoginPage,
 } from "../features/auth/pages/LoginPage";
 import {
@@ -73,6 +76,9 @@ import {
 import {
   PatientRecordsPage,
 } from "../features/patientFiles/pages/PatientRecordsPage";
+import {
+  ApprovalsPage,
+} from "../features/approvals/pages/ApprovalsPage";
 
 export const router =
   createBrowserRouter([
@@ -184,10 +190,28 @@ export const router =
                 InventoryPage,
             },
             {
-              path:
-                "reports",
               Component:
-                ReportsPage,
+                OwnerDoctorRoute,
+              children: [
+                {
+                  path:
+                    "approvals",
+                  Component:
+                    ApprovalsPage,
+                },
+                {
+                  path:
+                    "reports",
+                  Component:
+                    ReportsPage,
+                },
+                {
+                  path:
+                    "settings",
+                  Component:
+                    SettingsPage,
+                },
+              ],
             },
             {
               Component:
@@ -205,12 +229,7 @@ export const router =
                   Component:
                     AuditPage,
                 },
-                {
-                  path:
-                    "settings",
-                  Component:
-                    SettingsPage,
-                },
+
               ],
             },
           ],

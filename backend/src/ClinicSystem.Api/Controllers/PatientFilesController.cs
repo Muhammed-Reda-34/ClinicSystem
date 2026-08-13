@@ -27,7 +27,7 @@ public sealed class PatientFilesController : ControllerBase
     }
 
     [HttpGet("attachments")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> Attachments(
         Guid patientId,
         CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ public sealed class PatientFilesController : ControllerBase
     }
 
     [HttpPost("attachments")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     [RequestSizeLimit(12 * 1024 * 1024)]
     public async Task<IActionResult> UploadAttachment(
         Guid patientId,
@@ -105,7 +105,7 @@ public sealed class PatientFilesController : ControllerBase
     }
 
     [HttpGet("attachments/{attachmentId:guid}/download")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> DownloadAttachment(
         Guid patientId,
         Guid attachmentId,
@@ -137,7 +137,7 @@ public sealed class PatientFilesController : ControllerBase
     }
 
     [HttpDelete("attachments/{attachmentId:guid}")]
-    [Authorize(Roles = "Owner,Doctor,Secretary")]
+    [Authorize(Roles = "Owner,Doctor")]
     public async Task<IActionResult> DeleteAttachment(
         Guid patientId,
         Guid attachmentId,
@@ -163,7 +163,7 @@ public sealed class PatientFilesController : ControllerBase
     }
 
     [HttpGet("clinical-notes")]
-    [Authorize(Roles = "Owner,Doctor")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> ClinicalNotes(
         Guid patientId,
         CancellationToken cancellationToken)
