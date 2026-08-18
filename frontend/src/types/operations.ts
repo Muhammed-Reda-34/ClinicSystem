@@ -107,6 +107,7 @@ export type DashboardData = {
   todayNoShows: number;
   todayFollowUps: number;
   lowStockItems: number;
+  todayCollectedRevenue: number;
   todayLabExpenses: number | null;
   labExpensesThisMonth: number | null;
   collectedRevenueThisMonth: number | null;

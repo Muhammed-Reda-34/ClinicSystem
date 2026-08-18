@@ -191,6 +191,12 @@ export function PatientProfilePage() {
   ] =
     useState<Record<string, string>>({});
 
+  const [
+    paymentMethods,
+    setPaymentMethods,
+  ] =
+    useState<Record<string, string>>({});
+
   const patientQuery =
     useQuery({
       queryKey: [
@@ -363,14 +369,16 @@ export function PatientProfilePage() {
         ({
           visitId,
           amount,
+          method,
         }: {
           visitId: string;
           amount: number;
+          method: string;
         }) =>
           addVisitPayment(
             visitId,
             amount,
-            "Cash",
+            method,
           ),
       onSuccess:
         async (
@@ -378,6 +386,14 @@ export function PatientProfilePage() {
           variables,
         ) => {
           setPaymentAmounts(
+            current => ({
+              ...current,
+              [variables.visitId]:
+                "",
+            }),
+          );
+
+          setPaymentMethods(
             current => ({
               ...current,
               [variables.visitId]:
@@ -1344,6 +1360,33 @@ export function PatientProfilePage() {
                               : "No specific teeth"
                           )}
                       </div>
+
+                      {(visit.clinicalNotes
+                        || visit.treatments.some(item => item.notes)) && (
+                        <div className={styles.visitClinicalNotes}>
+                          {visit.treatments
+                            .filter(item => item.notes)
+                            .map(item => (
+                              <div key={item.id}>
+                                <strong>
+                                  {(ar
+                                    ? item.serviceNameAr
+                                    : item.serviceNameEn || item.serviceNameAr)}
+                                </strong>
+                                <p>{item.notes}</p>
+                              </div>
+                            ))}
+
+                          {visit.clinicalNotes && (
+                            <div>
+                              <strong>
+                                {ar ? "ملاحظة الطبيب" : "Doctor note"}
+                              </strong>
+                              <p>{visit.clinicalNotes}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className={styles.visitMoney}>
@@ -1398,6 +1441,9 @@ export function PatientProfilePage() {
                                   )}
                                   {payment.method
                                     ? ` • ${payment.method}`
+                                    : ""}
+                                  {payment.notes
+                                    ? ` • ${payment.notes === "Deposit" && ar ? "ديبوزيت" : payment.notes}`
                                     : ""}
                                 </small>
 
@@ -1481,11 +1527,31 @@ export function PatientProfilePage() {
                             }
                           />
 
+                          <select
+                            value={paymentMethods[visit.id] ?? ""}
+                            onChange={event =>
+                              setPaymentMethods(current => ({
+                                ...current,
+                                [visit.id]: event.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">
+                              {ar ? "طريقة الدفع" : "Payment method"}
+                            </option>
+                            <option value="Cash">
+                              {ar ? "كاش" : "Cash"}
+                            </option>
+                            <option value="InstaPay">InstaPay</option>
+                            <option value="Vodafone Cash">Vodafone Cash</option>
+                          </select>
+
                           <button
                             type="button"
                             disabled={
                               collectPaymentMutation
                                 .isPending
+                              || !paymentMethods[visit.id]
                               || !Number(
                                 paymentAmounts[
                                   visit.id
@@ -1509,6 +1575,8 @@ export function PatientProfilePage() {
                                         visit.id
                                       ],
                                     ),
+                                  method:
+                                    paymentMethods[visit.id],
                                 })
                             }
                           >

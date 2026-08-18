@@ -252,3 +252,30 @@
       1fr 1fr;
   }
 }
+
+
+.postponeButton {
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-radius: 9px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.postponeBox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.postponeBox input,
+.postponeBox button {
+  min-height: 38px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  padding: 7px 10px;
+}

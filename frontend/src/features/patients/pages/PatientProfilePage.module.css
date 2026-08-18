@@ -443,6 +443,35 @@
   font-size: 9px;
 }
 
+.visitClinicalNotes {
+  display: grid;
+  gap: 6px;
+  margin-top: 7px;
+  padding: 8px 9px;
+  background: #f4fafb;
+  border: 1px solid #dbeaec;
+  border-radius: 8px;
+}
+
+.visitClinicalNotes > div {
+  display: grid;
+  gap: 2px;
+}
+
+.visitClinicalNotes strong {
+  overflow: visible;
+  color: var(--c-primary-strong);
+  font-size: 9px;
+  white-space: normal;
+}
+
+.visitClinicalNotes p {
+  margin: 0;
+  color: #516b73;
+  font-size: 9px;
+  line-height: 1.65;
+}
+
 .visitMoney {
   display: grid;
   gap: 2px;
@@ -1000,6 +1029,7 @@
   display: grid;
   grid-template-columns:
     minmax(150px, 1fr)
+    140px
     150px
     auto;
   align-items: end;
@@ -1026,7 +1056,8 @@
   font-size: 8px;
 }
 
-.collectPayment input {
+.collectPayment input,
+.collectPayment select {
   min-height: 36px;
   padding: 7px 8px;
   color: var(--c-text);

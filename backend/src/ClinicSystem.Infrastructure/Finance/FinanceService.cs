@@ -1010,6 +1010,17 @@ public sealed class FinanceService
                     <= x.ReorderLevel,
                 cancellationToken);
 
+        var todayCollectedRevenue =
+            await visitQuery
+            .SelectMany(x => x.Payments)
+            .Where(payment =>
+                payment.PaidAtUtc >= todayStartUtc
+                && payment.PaidAtUtc < tomorrowStartUtc)
+            .SumAsync(
+                payment => (decimal?)payment.Amount,
+                cancellationToken)
+            ?? 0;
+
         if (!canViewFinancials)
         {
             return new DashboardDto(
@@ -1018,6 +1029,7 @@ public sealed class FinanceService
                 todayNoShows,
                 todayFollowUps,
                 lowStockItems,
+                todayCollectedRevenue,
                 null,
                 null,
                 null,
@@ -1082,6 +1094,7 @@ public sealed class FinanceService
             todayNoShows,
             todayFollowUps,
             lowStockItems,
+            todayCollectedRevenue,
             todayLabExpenses,
             report.LabExpenses,
             report.CollectedRevenue,

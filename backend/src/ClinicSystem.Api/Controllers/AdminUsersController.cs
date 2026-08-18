@@ -8,7 +8,7 @@ namespace ClinicSystem.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/admin/users")]
-[Authorize(Roles = "Owner,Doctor")]
+[Authorize(Roles = "Owner")]
 [EnableRateLimiting("api")]
 public sealed class AdminUsersController : ControllerBase
 {
@@ -31,10 +31,7 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(await _service.GetStaffAsync(cancellationToken));
     }
 
-    // Intentionally no POST /doctors endpoint here.
-    // Doctors can create Secretary/Nurse accounts from the normal application,
-    // but creating another Doctor is restricted to the external provisioning portal.
-
+    
     [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff(
         CreateStaffRequest request,

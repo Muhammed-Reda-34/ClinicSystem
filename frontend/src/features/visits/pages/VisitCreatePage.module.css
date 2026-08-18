@@ -43,6 +43,7 @@
   min-height: 40px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 8px 13px;
   border-radius: 10px;
   font-weight: 800;
@@ -56,6 +57,7 @@
 .draftButton {
   color: #fff;
   background: var(--c-primary);
+  border: 0;
 }
 
 .card {
@@ -63,6 +65,7 @@
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-md);
+  box-shadow: 0 12px 34px rgba(30, 70, 80, .04);
 }
 
 .sectionTitle {
@@ -79,6 +82,7 @@
   height: 36px;
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   color: var(--c-primary);
   background: var(--c-primary-soft);
   border-radius: 10px;
@@ -95,7 +99,7 @@
   margin: 0;
   color: var(--c-text-muted);
   font-size: 11px;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .field {
@@ -109,7 +113,9 @@
   font-weight: 800;
 }
 
-.field select {
+.field select,
+.field input,
+.field textarea {
   width: 100%;
   min-height: 43px;
   padding: 9px 11px;
@@ -117,12 +123,156 @@
   background: #fff;
   border: 1px solid #cddce1;
   border-radius: 10px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.field select:focus,
+.field input:focus,
+.field textarea:focus {
+  border-color: #75b6c1;
+  box-shadow: 0 0 0 3px rgba(58, 143, 158, .11);
+}
+
+.quickVisitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.consultationCard,
+.depositCard {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 92px;
+  padding: 12px;
+  background: linear-gradient(145deg, #fbfefe, #f3f9fa);
+  border: 1px solid #d5e6e9;
+  border-radius: 14px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.consultationCard:hover,
+.depositCard:hover {
+  transform: translateY(-1px);
+  border-color: #b9d8de;
+  box-shadow: 0 10px 24px rgba(31, 97, 108, .07);
+}
+
+.quickIcon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border-radius: 12px;
+}
+
+.quickIcon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.quickBody {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.quickBody > span,
+.quickBody > small {
+  color: var(--c-text-muted);
+  font-size: 9px;
+}
+
+.quickBody > strong {
+  font-size: 14px;
+}
+
+.toggleYes,
+.toggleNo {
+  min-height: 38px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.toggleYes {
+  color: #176b58;
+  background: #e8f7f1;
+  border: 1px solid #b8dfd1;
+}
+
+.toggleNo {
+  color: var(--c-primary-strong);
+  background: #fff;
+  border: 1px solid #bfd9de;
+}
+
+.toggleNo:disabled {
+  opacity: .45;
+}
+
+.yesNo {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #d5e4e7;
+  border-radius: 10px;
+}
+
+.yesNo button {
+  min-width: 44px;
+  min-height: 32px;
+  padding: 5px 8px;
+  color: #5c7279;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.yesNo .yesNoActive {
+  color: var(--c-primary-strong);
+  background: var(--c-primary-soft);
+}
+
+.examinationNotes {
+  margin-top: 12px;
+  padding: 13px;
+  background: #f8fcfc;
+  border: 1px solid #dcebed;
+  border-radius: 12px;
+  animation: reveal .2s ease both;
+}
+
+.depositFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  padding: 13px;
+  background: #fffaf1;
+  border: 1px solid #f1dfbd;
+  border-radius: 12px;
+  animation: reveal .2s ease both;
 }
 
 .catalogBlock {
   display: grid;
   gap: 12px;
-  margin-top: 16px;
   padding: 15px;
   background: #f9fbfc;
   border: 1px solid var(--c-border);
@@ -155,6 +305,12 @@
   background: #fff;
   border: 1px solid #d6e3e6;
   border-radius: 9px;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.categories button:hover {
+  transform: translateY(-1px);
+  border-color: #a8ced5;
 }
 
 .categories button strong {
@@ -197,6 +353,13 @@
   background: #fff;
   border: 1px solid #dce7e9;
   border-radius: 10px;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.servicesGrid button:hover {
+  transform: translateY(-1px);
+  border-color: #b2d2d8;
+  box-shadow: 0 8px 20px rgba(40, 99, 110, .06);
 }
 
 .servicesGrid button > div {
@@ -226,12 +389,18 @@
   box-shadow: inset 0 0 0 1px #78b8c2;
 }
 
+.treatmentComposer {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  animation: reveal .2s ease both;
+}
+
 .selectedServiceBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 14px 0;
   padding: 12px 14px;
   background: var(--c-primary-soft);
   border: 1px solid #c6e1e6;
@@ -255,15 +424,144 @@
 .addTreatment {
   width: 100%;
   min-height: 46px;
-  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   color: #fff;
   background: var(--c-primary);
   border: 0;
   border-radius: 10px;
   font-weight: 900;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.addTreatment:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(33, 105, 117, .18);
+}
+
+.addTreatment svg {
+  width: 17px;
+  height: 17px;
 }
 
 .addTreatment:disabled {
+  opacity: .45;
+}
+
+.visitPlan {
+  display: grid;
+  gap: 8px;
+}
+
+.visitPlan article {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto 34px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  background: #fbfdfe;
+  border: 1px solid #dce8ea;
+  border-radius: 11px;
+  animation: reveal .2s ease both;
+}
+
+.planNumber {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--c-primary-strong);
+  background: var(--c-primary-soft);
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.planInfo {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.planInfo strong {
+  font-size: 11px;
+}
+
+.planInfo span,
+.planInfo small {
+  color: var(--c-text-muted);
+  font-size: 9px;
+}
+
+.visitPlan article > b {
+  color: var(--c-primary-strong);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.removeTreatment {
+  width: 30px;
+  height: 30px;
+  color: var(--c-danger);
+  background: var(--c-danger-soft);
+  border: 0;
+  border-radius: 8px;
+  font-size: 18px;
+}
+
+.emptyPlan {
+  padding: 18px;
+  color: var(--c-text-muted);
+  background: #fafcfd;
+  border: 1px dashed #cbdde1;
+  border-radius: 11px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.doctorNote {
+  margin-top: 14px;
+}
+
+.continueButton {
+  width: 100%;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 15px;
+  color: #fff;
+  background: var(--c-primary);
+  border: 0;
+  border-radius: 12px;
+  text-align: start;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(33, 105, 117, .18);
+}
+
+.continueButton > span {
+  font-weight: 900;
+}
+
+.continueButton > small {
+  opacity: .82;
+  font-size: 9px;
+}
+
+.continueButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.continueButton:disabled {
   opacity: .45;
 }
 
@@ -277,9 +575,40 @@
   border-radius: 14px;
 }
 
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consultationCard,
+  .depositCard,
+  .categories button,
+  .servicesGrid button,
+  .addTreatment,
+  .continueButton,
+  .examinationNotes,
+  .depositFields,
+  .treatmentComposer,
+  .visitPlan article {
+    animation: none;
+    transition: none;
+  }
+}
+
 @media (max-width: 980px) {
   .servicesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quickVisitGrid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -293,13 +622,26 @@
     justify-content: stretch;
   }
 
-  .headerActions a {
+  .headerActions a,
+  .headerActions button {
     flex: 1;
     justify-content: center;
   }
 
-  .servicesGrid {
+  .servicesGrid,
+  .depositFields {
     grid-template-columns: 1fr;
+  }
+
+  .consultationCard,
+  .depositCard,
+  .visitPlan article {
+    grid-template-columns: 1fr;
+  }
+
+  .quickIcon {
+    width: 38px;
+    height: 38px;
   }
 
   .card {

@@ -12,6 +12,10 @@ export type VisitDraft = {
   doctorId: string;
   appointmentId: string | null;
   treatments: VisitDraftTreatment[];
+  clinicalNotes?: string | null;
+  hasDeposit?: boolean;
+  depositAmount?: number;
+  depositPaymentMethod?: string | null;
 };
 
 function key(patientId: string) {
@@ -35,7 +39,13 @@ export function loadVisitDraft(
       return null;
     }
 
-    return parsed;
+    return {
+      ...parsed,
+      clinicalNotes: parsed.clinicalNotes ?? null,
+      hasDeposit: parsed.hasDeposit ?? false,
+      depositAmount: parsed.depositAmount ?? 0,
+      depositPaymentMethod: parsed.depositPaymentMethod ?? null,
+    };
   } catch {
     return null;
   }

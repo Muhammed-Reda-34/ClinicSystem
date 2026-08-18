@@ -19,7 +19,8 @@ public sealed record CreateVisitCommand(
     DateTime? FollowUpAtUtc,
     IReadOnlyCollection<CreateVisitTreatmentCommand> Treatments,
     decimal InitialPayment,
-    string? PaymentMethod
+    string? PaymentMethod,
+    string? InitialPaymentNotes
 );
 
 public sealed record VisitTreatmentDto(
@@ -89,6 +90,11 @@ public sealed record DebtVisitDto(
     decimal Total,
     decimal Paid,
     decimal Remaining
+);
+
+public sealed record RescheduleFollowUpCommand(
+    DateTime FollowUpAtUtc,
+    string? Reason
 );
 
 public sealed record VisitWriteResult(

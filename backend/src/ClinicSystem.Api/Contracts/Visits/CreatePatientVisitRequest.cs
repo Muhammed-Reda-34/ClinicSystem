@@ -45,4 +45,7 @@ public sealed class CreatePatientVisitRequest
 
     [MaxLength(100)]
     public string? PaymentMethod { get; set; }
+
+    [MaxLength(500)]
+    public string? InitialPaymentNotes { get; set; }
 }

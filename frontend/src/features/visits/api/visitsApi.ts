@@ -83,3 +83,14 @@ export async function markFollowUpCompleted(
     `/visits/${visitId}/follow-up/completed`,
   );
 }
+
+export async function rescheduleFollowUp(
+  visitId: string,
+  followUpAtUtc: string,
+  reason?: string,
+) {
+  await http.put(
+    `/visits/${visitId}/follow-up/reschedule`,
+    { followUpAtUtc, reason: reason || null },
+  );
+}

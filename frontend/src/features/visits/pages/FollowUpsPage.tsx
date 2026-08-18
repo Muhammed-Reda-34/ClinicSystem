@@ -19,6 +19,7 @@ import {
 import {
   getFollowUpVisits,
   markFollowUpCompleted,
+  rescheduleFollowUp,
 } from "../api/visitsApi";
 import styles from "./FollowUpsPage.module.css";
 
@@ -84,6 +85,9 @@ export function FollowUpsPage() {
   ] =
     useState(today);
 
+  const [postponeVisitId, setPostponeVisitId] = useState<string | null>(null);
+  const [postponeDate, setPostponeDate] = useState("");
+
   const range =
     useMemo(
       () =>
@@ -134,6 +138,25 @@ export function FollowUpsPage() {
               }),
           ]);
         },
+    });
+
+
+  const postponeMutation =
+    useMutation({
+      mutationFn: ({ visitId, newDate }: { visitId: string; newDate: string }) =>
+        rescheduleFollowUp(
+          visitId,
+          new Date(`${newDate}T12:00:00`).toISOString(),
+        ),
+      onSuccess: async () => {
+        setPostponeVisitId(null);
+        setPostponeDate("");
+        await Promise.all([
+          client.invalidateQueries({ queryKey: ["follow-ups"] }),
+          client.invalidateQueries({ queryKey: ["sidebar-follow-ups"] }),
+          client.invalidateQueries({ queryKey: ["dashboard"] }),
+        ]);
+      },
     });
 
   const pendingCount =
@@ -272,24 +295,45 @@ export function FollowUpsPage() {
                   </a>
 
                   {!completed ? (
-                    <button
-                      type="button"
-                      className={styles.completeButton}
-                      disabled={
-                        completeMutation
-                          .isPending
-                      }
-                      onClick={() =>
-                        completeMutation
-                          .mutate(
-                            item.visitId,
-                          )
-                      }
-                    >
-                      {ar
-                        ? "تمت المتابعة"
-                        : "Completed"}
-                    </button>
+                    <>
+                      {postponeVisitId === item.visitId ? (
+                        <div className={styles.postponeBox}>
+                          <input
+                            type="date"
+                            min={today}
+                            value={postponeDate}
+                            onChange={event => setPostponeDate(event.target.value)}
+                          />
+                          <button
+                            type="button"
+                            disabled={!postponeDate || postponeMutation.isPending}
+                            onClick={() => postponeMutation.mutate({ visitId: item.visitId, newDate: postponeDate })}
+                          >
+                            {ar ? "حفظ الموعد" : "Save date"}
+                          </button>
+                          <button type="button" onClick={() => { setPostponeVisitId(null); setPostponeDate(""); }}>
+                            {ar ? "إلغاء" : "Cancel"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.postponeButton}
+                          onClick={() => { setPostponeVisitId(item.visitId); setPostponeDate(""); }}
+                        >
+                          {ar ? "تأجيل المتابعة" : "Postpone"}
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className={styles.completeButton}
+                        disabled={completeMutation.isPending}
+                        onClick={() => completeMutation.mutate(item.visitId)}
+                      >
+                        {ar ? "تمت المتابعة" : "Completed"}
+                      </button>
+                    </>
                   ) : (
                     <span className={styles.completedBadge}>
                       {ar

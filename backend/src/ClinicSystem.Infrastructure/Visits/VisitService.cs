@@ -222,6 +222,7 @@ public sealed class VisitService
                     DoctorId = visit.DoctorId,
                     Amount = command.InitialPayment,
                     Method = CleanOptional(command.PaymentMethod),
+                    Notes = CleanOptional(command.InitialPaymentNotes),
                     PaidAtUtc = command.VisitDateUtc,
                     CreatedByUserId = actorUserId,
                     CreatedAtUtc = DateTime.UtcNow
@@ -267,6 +268,7 @@ public sealed class VisitService
                 visit.ExtraAmount,
                 Total = total,
                 InitialPayment = command.InitialPayment,
+                InitialPaymentNotes = CleanOptional(command.InitialPaymentNotes),
                 visit.FollowUpAtUtc
             },
             ipAddress);
@@ -627,6 +629,47 @@ public sealed class VisitService
             null,
             null,
             visit.Id);
+    }
+
+    public async Task<VisitWriteResult> RescheduleFollowUpAsync(
+        Guid visitId,
+        RescheduleFollowUpCommand command,
+        IReadOnlyCollection<Guid> allowedDoctorIds,
+        Guid actorUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken)
+    {
+        if (command.FollowUpAtUtc == default)
+        {
+            return Fail("INVALID_FOLLOW_UP_DATE", "A valid follow-up date is required.");
+        }
+
+        var visit = await _db.PatientVisits
+            .SingleOrDefaultAsync(
+                x => x.Id == visitId && allowedDoctorIds.Contains(x.DoctorId),
+                cancellationToken);
+
+        if (visit is null)
+        {
+            return Fail("FOLLOW_UP_NOT_FOUND", "Follow-up visit was not found.");
+        }
+
+        var previous = visit.FollowUpAtUtc;
+        visit.FollowUpAtUtc = command.FollowUpAtUtc;
+        visit.FollowUpCompletedAtUtc = null;
+        visit.FollowUpCompletedByUserId = null;
+
+        _audit.Add(
+            actorUserId,
+            "FollowUpRescheduled",
+            nameof(PatientVisit),
+            visit.Id.ToString(),
+            new { FollowUpAtUtc = previous },
+            new { visit.FollowUpAtUtc, Reason = CleanOptional(command.Reason) },
+            ipAddress);
+
+        await _db.SaveChangesAsync(cancellationToken);
+        return new VisitWriteResult(true, null, null, visit.Id);
     }
 
     private static PatientVisitDto MapVisit(

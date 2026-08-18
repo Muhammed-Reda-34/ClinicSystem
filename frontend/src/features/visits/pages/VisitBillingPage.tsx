@@ -37,13 +37,23 @@ export function VisitBillingPage() {
     () => patientId ? loadVisitDraft(patientId) : null,
   );
 
-  const [discount, setDiscount] = useState(0);
-  const [extra, setExtra] = useState(0);
+  const [discountInput, setDiscountInput] = useState("");
+  const [extraInput, setExtraInput] = useState("");
   const [extraReason, setExtraReason] = useState("");
-  const [initialPayment, setInitialPayment] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [initialPaymentInput, setInitialPaymentInput] = useState(
+    () => draft?.hasDeposit && draft.depositAmount
+      ? String(draft.depositAmount)
+      : "",
+  );
+  const [paymentMethod, setPaymentMethod] = useState(
+    () => draft?.depositPaymentMethod ?? "",
+  );
   const [followUpLocal, setFollowUpLocal] = useState("");
-  const [clinicalNotes, setClinicalNotes] = useState("");
+  const [followUpMonths, setFollowUpMonths] = useState("");
+  const [visitDate, setVisitDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [clinicalNotes, setClinicalNotes] = useState(
+    () => draft?.clinicalNotes ?? "",
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,8 +66,25 @@ export function VisitBillingPage() {
     [draft],
   );
 
+  const discount = Number(discountInput || 0);
+  const extra = Number(extraInput || 0);
+  const initialPayment = Number(initialPaymentInput || 0);
   const total = Math.max(0, subtotal - discount + extra);
   const remaining = Math.max(0, total - initialPayment);
+  const depositApplied = Boolean(draft?.hasDeposit && initialPayment > 0);
+
+  function applyFollowUpMonths(value: string) {
+    setFollowUpMonths(value);
+    if (!value) {
+      setFollowUpLocal("");
+      return;
+    }
+
+    const months = Number(value);
+    const base = visitDate ? new Date(`${visitDate}T12:00:00`) : new Date();
+    base.setMonth(base.getMonth() + months);
+    setFollowUpLocal(base.toISOString().slice(0, 10));
+  }
 
   function removeTreatment(index: number) {
     if (!draft || !patientId) return;
@@ -101,6 +128,11 @@ export function VisitBillingPage() {
       return;
     }
 
+    if (initialPayment > 0 && !paymentMethod) {
+      setError(ar ? "اختر طريقة الدفع." : "Select a payment method.");
+      return;
+    }
+
     setSubmitting(true);
     setError("");
 
@@ -109,13 +141,13 @@ export function VisitBillingPage() {
         patientId,
         doctorId: draft.doctorId,
         appointmentId: draft.appointmentId,
-        visitDateUtc: new Date().toISOString(),
+        visitDateUtc: new Date(`${visitDate}T12:00:00`).toISOString(),
         clinicalNotes: clinicalNotes || null,
         discountAmount: discount,
         extraAmount: extra,
         extraReason: extraReason || null,
         followUpAtUtc: followUpLocal
-          ? new Date(followUpLocal).toISOString()
+          ? new Date(`${followUpLocal}T12:00:00`).toISOString()
           : null,
         treatments: draft.treatments.map(item => ({
           dentalServiceId: item.dentalServiceId,
@@ -125,6 +157,7 @@ export function VisitBillingPage() {
         })),
         initialPayment,
         paymentMethod: paymentMethod || null,
+        initialPaymentNotes: depositApplied ? "Deposit" : null,
       });
 
       clearVisitDraft(patientId);
@@ -167,11 +200,11 @@ export function VisitBillingPage() {
           <h1>{ar ? "الحساب والمتابعة" : "Billing & follow-up"}</h1>
           <p>
             {ar
-              ? "لا يوجد علاج مضاف للزيارة. ارجع واختر الخدمة أولًا."
-              : "No treatment has been added. Go back and select a service first."}
+              ? "لا يوجد كشف أو علاج مضاف للزيارة. ارجع واختر البنود أولًا."
+              : "No consultation or treatment has been added. Go back and select visit items first."}
           </p>
           <Link to={`/patients/${patientId}/visits/new`}>
-            {ar ? "الرجوع لإضافة العلاج" : "Back to treatment"}
+            {ar ? "الرجوع لخطة الزيارة" : "Back to visit plan"}
           </Link>
         </div>
       </section>
@@ -192,7 +225,7 @@ export function VisitBillingPage() {
         </div>
 
         <Link className={styles.back} to={treatmentStepUrl()}>
-          {ar ? "الرجوع للعلاج" : "Back to treatment"}
+          {ar ? "تعديل خطة الزيارة" : "Edit visit plan"}
         </Link>
       </header>
 
@@ -201,11 +234,11 @@ export function VisitBillingPage() {
           <div className={styles.sectionTitle}>
             <span>01</span>
             <div>
-              <h2>{ar ? "العلاج المضاف" : "Selected treatment"}</h2>
+              <h2>{ar ? "ملخص الزيارة" : "Visit summary"}</h2>
               <p>
                 {ar
-                  ? "العلاج منفصل عن الحساب. يمكنك الرجوع لإضافة علاج آخر ثم العودة هنا."
-                  : "Treatment is separate from billing. You can go back, add another treatment, then return here."}
+                  ? "كل الكشف والعلاجات التي اخترتها في الشاشة السابقة موجودة هنا مرة واحدة."
+                  : "All consultation and treatment items selected on the previous screen are summarized here."}
               </p>
             </div>
           </div>
@@ -222,6 +255,11 @@ export function VisitBillingPage() {
                         ? "بدون سن محدد"
                         : "No specific tooth"}
                   </small>
+                  {item.notes && (
+                    <small className={styles.itemNote}>
+                      {item.notes}
+                    </small>
+                  )}
                 </div>
 
                 <b>{item.unitPrice.toLocaleString()} EGP</b>
@@ -238,7 +276,7 @@ export function VisitBillingPage() {
           </div>
 
           <Link className={styles.addAnother} to={treatmentStepUrl()}>
-            {ar ? "+ إضافة علاج آخر" : "+ Add another treatment"}
+            {ar ? "تعديل / إضافة علاج" : "Edit / add treatment"}
           </Link>
         </section>
 
@@ -249,11 +287,25 @@ export function VisitBillingPage() {
               <h2>{ar ? "الحساب والمتابعة" : "Billing & follow-up"}</h2>
               <p>
                 {ar
-                  ? "الخصم والإضافة والمدفوع والمتابعة والملاحظات فقط في هذه الصفحة."
-                  : "Discount, extra amount, payment, follow-up and visit notes live on this page only."}
+                  ? "التاريخ والمدفوع والمتابعة هنا، مع الاحتفاظ بملاحظات الطبيب من الشاشة السابقة."
+                  : "Visit date, payment and follow-up live here while preserving the doctor's notes from the previous step."}
               </p>
             </div>
           </div>
+
+          {draft.hasDeposit && (
+            <div className={styles.depositNotice}>
+              <div>
+                <strong>{ar ? "ديبوزيت مسجل" : "Deposit recorded"}</strong>
+                <span>
+                  {ar
+                    ? "تم تحميل قيمة الديبوزيت تلقائيًا كدفعة أولى ويمكن مراجعتها قبل الحفظ."
+                    : "The deposit was loaded automatically as the initial payment and can be reviewed before saving."}
+                </span>
+              </div>
+              <b>{initialPayment.toLocaleString()} EGP</b>
+            </div>
+          )}
 
           <div className={styles.financialGrid}>
             <label className={styles.field}>
@@ -262,8 +314,9 @@ export function VisitBillingPage() {
                 type="number"
                 min={0}
                 step="0.01"
-                value={discount}
-                onChange={event => setDiscount(Number(event.target.value))}
+                value={discountInput}
+                placeholder={ar ? "الخصم" : "Discount"}
+                onChange={event => setDiscountInput(event.target.value)}
               />
             </label>
 
@@ -273,29 +326,40 @@ export function VisitBillingPage() {
                 type="number"
                 min={0}
                 step="0.01"
-                value={extra}
-                onChange={event => setExtra(Number(event.target.value))}
+                value={extraInput}
+                placeholder={ar ? "إضافة" : "Extra amount"}
+                onChange={event => setExtraInput(event.target.value)}
               />
             </label>
 
             <label className={styles.field}>
-              <span>{t("initialPayment")}</span>
+              <span>
+                {draft.hasDeposit
+                  ? ar ? "الديبوزيت / الدفعة الأولى" : "Deposit / initial payment"
+                  : t("initialPayment")}
+              </span>
               <input
                 type="number"
                 min={0}
                 max={total}
                 step="0.01"
-                value={initialPayment}
-                onChange={event => setInitialPayment(Number(event.target.value))}
+                value={initialPaymentInput}
+                placeholder={ar ? "اكتب المبلغ المدفوع" : "Enter paid amount"}
+                onChange={event => setInitialPaymentInput(event.target.value)}
               />
             </label>
 
             <label className={styles.field}>
               <span>{t("paymentMethod")}</span>
-              <input
+              <select
                 value={paymentMethod}
                 onChange={event => setPaymentMethod(event.target.value)}
-              />
+              >
+                <option value="">{ar ? "اختر طريقة الدفع" : "Select payment method"}</option>
+                <option value="Cash">{ar ? "كاش" : "Cash"}</option>
+                <option value="InstaPay">InstaPay</option>
+                <option value="Vodafone Cash">Vodafone Cash</option>
+              </select>
             </label>
 
             {extra > 0 && (
@@ -310,11 +374,43 @@ export function VisitBillingPage() {
             )}
 
             <label className={styles.field}>
+              <span>{ar ? "تاريخ الزيارة" : "Visit date"}</span>
+              <input
+                type="date"
+                value={visitDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={event => {
+                  setVisitDate(event.target.value);
+                  if (followUpMonths) applyFollowUpMonths(followUpMonths);
+                }}
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>{ar ? "موعد المتابعة" : "Follow-up after"}</span>
+              <select
+                value={followUpMonths}
+                onChange={event => applyFollowUpMonths(event.target.value)}
+              >
+                <option value="">{ar ? "بدون متابعة" : "No follow-up"}</option>
+                <option value="1">{ar ? "شهر" : "1 month"}</option>
+                <option value="2">{ar ? "شهرين" : "2 months"}</option>
+                <option value="3">{ar ? "3 أشهر" : "3 months"}</option>
+                <option value="4">{ar ? "4 أشهر" : "4 months"}</option>
+                <option value="5">{ar ? "5 أشهر" : "5 months"}</option>
+                <option value="6">{ar ? "6 أشهر" : "6 months"}</option>
+              </select>
+            </label>
+
+            <label className={styles.field}>
               <span>{t("followUpDate")}</span>
               <input
-                type="datetime-local"
+                type="date"
                 value={followUpLocal}
-                onChange={event => setFollowUpLocal(event.target.value)}
+                onChange={event => {
+                  setFollowUpMonths("");
+                  setFollowUpLocal(event.target.value);
+                }}
               />
             </label>
           </div>
@@ -343,7 +439,7 @@ export function VisitBillingPage() {
           </div>
 
           <label className={styles.field}>
-            <span>{t("clinicalNotes")}</span>
+            <span>{ar ? "ملاحظة / تذكرة الطبيب" : "Doctor note / reminder"}</span>
             <textarea
               rows={5}
               value={clinicalNotes}

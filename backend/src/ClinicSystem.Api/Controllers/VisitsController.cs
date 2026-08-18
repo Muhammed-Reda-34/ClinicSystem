@@ -95,6 +95,29 @@ public sealed class VisitsController : ControllerBase
                 });
     }
 
+    [HttpPut("{visitId:guid}/follow-up/reschedule")]
+    public async Task<IActionResult> RescheduleFollowUp(
+        Guid visitId,
+        RescheduleFollowUpRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope = await ResolveScopeAsync(cancellationToken);
+
+        var result = await _visits.RescheduleFollowUpAsync(
+            visitId,
+            new RescheduleFollowUpCommand(
+                request.FollowUpAtUtc,
+                request.Reason),
+            scope,
+            User.GetUserIdOrThrow(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        return result.Succeeded
+            ? NoContent()
+            : NotFound(new { code = result.ErrorCode, message = result.ErrorMessage });
+    }
+
     [HttpGet("debts")]
     [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
     public async Task<IActionResult> Debts(
@@ -135,7 +158,8 @@ public sealed class VisitsController : ControllerBase
                         x.Notes))
                     .ToArray(),
                 request.InitialPayment,
-                request.PaymentMethod),
+                request.PaymentMethod,
+                request.InitialPaymentNotes),
             scope,
             User.GetUserIdOrThrow(),
             HttpContext.Connection.RemoteIpAddress?.ToString(),

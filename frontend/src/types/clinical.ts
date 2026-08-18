@@ -124,6 +124,7 @@ export type CreateVisitPayload = {
   treatments: CreateVisitTreatment[];
   initialPayment: number;
   paymentMethod?: string | null;
+  initialPaymentNotes?: string | null;
 };
 
 export type VisitTreatment = {

@@ -137,6 +137,47 @@
   border-color: #c6e1e6;
 }
 
+.itemNote {
+  margin-top: 3px;
+  padding: 5px 7px;
+  color: #3f6169 !important;
+  background: #edf7f8;
+  border-radius: 7px;
+  line-height: 1.55;
+}
+
+.depositNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: #fff8ea;
+  border: 1px solid #efd9a8;
+  border-radius: 11px;
+}
+
+.depositNotice > div {
+  display: grid;
+  gap: 3px;
+}
+
+.depositNotice strong {
+  color: #7f5a18;
+  font-size: 11px;
+}
+
+.depositNotice span {
+  color: #8c7548;
+  font-size: 9px;
+}
+
+.depositNotice b {
+  color: #7f5a18;
+  white-space: nowrap;
+}
+
 .financialGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -155,7 +196,8 @@
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   min-height: 43px;
   padding: 9px 11px;

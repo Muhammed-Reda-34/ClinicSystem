@@ -83,6 +83,7 @@ public sealed record DashboardDto(
     int TodayNoShows,
     int TodayFollowUps,
     int LowStockItems,
+    decimal TodayCollectedRevenue,
     decimal? TodayLabExpenses,
     decimal? LabExpensesThisMonth,
     decimal? CollectedRevenueThisMonth,

@@ -782,6 +782,16 @@ export function DashboardPage() {
               <StatCard
                 className="clinicDash__card--profit"
                 icon={<WalletIcon />}
+                label={ar ? "إيراد اليوم" : "Today's collected revenue"}
+                value={money(data.todayCollectedRevenue)}
+                currency
+                highlight
+                hint={ar ? "إجمالي المدفوعات المحصلة اليوم، ويبدأ حساب يوم جديد تلقائيًا." : "Payments collected today; a new day is calculated automatically."}
+              />
+
+              <StatCard
+                className="clinicDash__card--profit"
+                icon={<WalletIcon />}
                 label={ar ? "صافي ربح الطبيب هذا الشهر" : "Doctor net profit this month"}
                 value={money(data.netThisMonth)}
                 currency
@@ -821,6 +831,16 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="clinicDash__mainGrid">
+              <StatCard
+                className="clinicDash__card--profit"
+                icon={<WalletIcon />}
+                label={ar ? "إيراد اليوم" : "Today's collected revenue"}
+                value={money(data.todayCollectedRevenue)}
+                currency
+                highlight
+                hint={ar ? "إجمالي المدفوعات المحصلة اليوم." : "Total payments collected today."}
+              />
+
               <StatCard
                 className="clinicDash__card--profit"
                 icon={<CalendarIcon />}
