@@ -1,0 +1,340 @@
+.page {
+  min-height: 100vh;
+  padding: 34px 18px 60px;
+  background:
+    radial-gradient(circle at 12% 5%, rgba(44, 151, 161, .11), transparent 30%),
+    #f4f8f9;
+  color: #123f4b;
+}
+
+.shell {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.header,
+.accessCard,
+.formCard,
+.unlockedBar {
+  background: #fff;
+  border: 1px solid #d7e7e9;
+  border-radius: 20px;
+  box-shadow: 0 18px 55px rgba(16, 66, 78, .07);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 25px;
+}
+
+.logo {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 16px;
+  background: #123f4b;
+  color: #eaf8f8;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 4px;
+  color: #25828f;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.header h1,
+.accessCard h2,
+.formTitle h2 {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: clamp(27px, 4vw, 40px);
+}
+
+.header p,
+.accessCard p,
+.formTitle p {
+  margin: 6px 0 0;
+  color: #6d868c;
+  line-height: 1.8;
+}
+
+.accessCard,
+.formCard {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.step {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: 32px;
+  margin-bottom: 8px;
+  padding: 0 9px;
+  border-radius: 9px;
+  background: #e8f5f6;
+  color: #176d79;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.accessCard label,
+.formCard label {
+  display: grid;
+  gap: 7px;
+  font-weight: 800;
+}
+
+.accessCard label > span,
+.formCard label > span,
+.doctorSelector legend {
+  font-size: 12px;
+}
+
+.accessCard input,
+.formCard input,
+.formCard select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid #ccdee1;
+  border-radius: 11px;
+  background: #fbfdfd;
+  color: #143f4a;
+  outline: none;
+}
+
+.accessCard input:focus,
+.formCard input:focus,
+.formCard select:focus {
+  border-color: #2d909b;
+  box-shadow: 0 0 0 3px rgba(45, 144, 155, .10);
+}
+
+.unlockedBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 18px;
+  border-color: #bfe4d3;
+  background: #f4fbf7;
+}
+
+.unlockedBar div {
+  display: grid;
+  gap: 3px;
+}
+
+.unlockedBar span {
+  color: #648178;
+  font-size: 12px;
+}
+
+.unlockedBar button,
+.secondary,
+.passwordField button {
+  border: 1px solid #cbdde0;
+  background: #fff;
+  color: #174d59;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.unlockedBar button {
+  padding: 9px 13px;
+}
+
+.formTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.roleButton,
+.roleActive {
+  display: grid;
+  gap: 4px;
+  padding: 15px;
+  text-align: right;
+  border-radius: 13px;
+  cursor: pointer;
+}
+
+.roleButton {
+  border: 1px solid #d6e5e7;
+  background: #fbfdfd;
+  color: #234d56;
+}
+
+.roleActive {
+  border: 1px solid #258793;
+  background: #eaf7f8;
+  color: #155d68;
+}
+
+.roleButton span,
+.roleActive span {
+  color: #718a90;
+  font-size: 11px;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.doctorSelector {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #d8e6e8;
+  border-radius: 13px;
+}
+
+.doctorSelector legend {
+  padding: 0 6px;
+  font-weight: 900;
+}
+
+.doctorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.doctorGrid label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid #e1ebed;
+  border-radius: 10px;
+  background: #fbfdfd;
+}
+
+.doctorGrid input {
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+.doctorGrid label > span {
+  display: grid;
+  gap: 2px;
+}
+
+.doctorGrid small,
+.empty,
+.hint {
+  color: #748b90;
+  font-size: 11px;
+}
+
+.passwordField {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.passwordField button {
+  padding: 0 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.primary,
+.secondary {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: #145664;
+  color: #fff;
+}
+
+.primary:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: #fff;
+}
+
+.error,
+.success {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.error {
+  color: #963f3f;
+  border: 1px solid #efcaca;
+  background: #fff2f2;
+}
+
+.success {
+  color: #246c50;
+  border: 1px solid #c7e7d6;
+  background: #eff9f4;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 16px 10px 36px;
+  }
+
+  .header {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .roleGrid,
+  .twoColumns,
+  .doctorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .unlockedBar,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

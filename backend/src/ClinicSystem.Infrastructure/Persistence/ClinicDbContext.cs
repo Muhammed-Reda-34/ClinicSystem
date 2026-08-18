@@ -26,6 +26,8 @@ public sealed class ClinicDbContext
         Set<PatientMedicalProfile>();
 
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<PreliminaryBooking> PreliminaryBookings =>
+        Set<PreliminaryBooking>();
 
     public DbSet<DentalService> DentalServices => Set<DentalService>();
     public DbSet<DentalServicePriceHistory> DentalServicePriceHistory =>
@@ -82,6 +84,7 @@ public sealed class ClinicDbContext
         ConfigurePatientMedicalProfiles(builder);
 
         ConfigureAppointments(builder);
+        ConfigurePreliminaryBookings(builder);
 
         ConfigureDentalServices(builder);
         ConfigureDentalServicePriceHistory(builder);
@@ -377,6 +380,50 @@ public sealed class ClinicDbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(x => x.Doctor)
+                .WithMany()
+                .HasForeignKey(x => x.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigurePreliminaryBookings(ModelBuilder builder)
+    {
+        builder.Entity<PreliminaryBooking>(entity =>
+        {
+            entity.ToTable("PreliminaryBookings");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.PatientName)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            entity.Property(x => x.PhoneNumber)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.HasIndex(x => x.PatientId);
+            entity.HasIndex(x => x.DoctorId);
+            entity.HasIndex(x => x.VisitDate);
+            entity.HasIndex(x => x.AttendanceStatus);
+            entity.HasIndex(x => new
+            {
+                x.VisitDate,
+                x.VisitTime
+            });
+
+            entity.HasIndex(x => new
+            {
+                x.DoctorId,
+                x.VisitDate,
+                x.VisitTime
+            });
+
+            entity.HasOne(x => x.Patient)
+                .WithMany()
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<DoctorProfile>()
                 .WithMany()
                 .HasForeignKey(x => x.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);

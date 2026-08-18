@@ -1,0 +1,254 @@
+.page {
+  display: grid;
+  gap: 18px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content:
+    space-between;
+  gap: 18px;
+}
+
+.eyebrow {
+  margin-bottom: 5px;
+  color: var(--c-accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin-bottom: 5px;
+  font-size: 30px;
+}
+
+.header p {
+  max-width: 780px;
+  margin: 0;
+  color:
+    var(--c-text-muted);
+  line-height: 1.65;
+}
+
+.headerTools {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+}
+
+.pendingCard {
+  min-width: 110px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  background:
+    var(--c-primary-soft);
+  border:
+    1px solid #cce5ea;
+  border-radius: 10px;
+}
+
+.pendingCard span {
+  color:
+    var(--c-text-muted);
+  font-size: 8px;
+}
+
+.pendingCard strong {
+  color:
+    var(--c-primary);
+  font-size: 20px;
+}
+
+.datePicker {
+  display: grid;
+  gap: 4px;
+}
+
+.datePicker span {
+  color:
+    var(--c-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.datePicker input {
+  min-height: 40px;
+  padding: 7px 9px;
+  color: var(--c-text);
+  background: #fff;
+  border:
+    1px solid var(--c-border);
+  border-radius: 9px;
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns:
+    100px
+    minmax(0,1fr)
+    auto;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 15px;
+  background:
+    var(--c-surface);
+  border:
+    1px solid var(--c-border);
+  border-radius: 11px;
+  transition:
+    opacity 150ms ease,
+    background 150ms ease;
+}
+
+.completed {
+  opacity: .58;
+  background: #eef1f2;
+  border-color: #d9e0e2;
+}
+
+.time {
+  color:
+    var(--c-primary);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.body {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.body > a:first-child {
+  width: fit-content;
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.body small {
+  color:
+    var(--c-text-muted);
+  font-size: 9px;
+}
+
+.phone {
+  width: fit-content;
+  color:
+    var(--c-primary-strong);
+  font-size: 11px;
+  font-weight: 800;
+  direction: ltr;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.whatsapp,
+.completeButton,
+.completedBadge {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.whatsapp {
+  color: #17776d;
+  background:
+    var(--c-accent-soft);
+}
+
+.completeButton {
+  color: #fff;
+  background:
+    var(--c-primary);
+  border: 0;
+}
+
+.completedBadge {
+  color:
+    var(--c-text-muted);
+  background: #dfe5e7;
+}
+
+.state {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  color:
+    var(--c-text-muted);
+  background:
+    var(--c-surface);
+  border:
+    1px solid var(--c-border);
+  border-radius: 11px;
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .headerTools {
+    align-items: stretch;
+  }
+
+  .pendingCard,
+  .datePicker {
+    flex: 1;
+  }
+
+  .card {
+    grid-template-columns:
+      75px minmax(0,1fr);
+  }
+
+  .actions {
+    grid-column:
+      1 / -1;
+    justify-content:
+      flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerTools {
+    display: grid;
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .time {
+    text-align: start;
+  }
+
+  .actions {
+    grid-column: auto;
+    display: grid;
+    grid-template-columns:
+      1fr 1fr;
+  }
+}

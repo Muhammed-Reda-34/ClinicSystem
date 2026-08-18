@@ -1110,6 +1110,63 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.ToTable("Payments", (string)null);
                 });
 
+            modelBuilder.Entity("ClinicSystem.Domain.Entities.PreliminaryBooking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttendanceStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("DoctorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PatientName")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("VisitDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("VisitTime")
+                        .HasColumnType("time without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendanceStatus");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("VisitDate");
+
+                    b.HasIndex("VisitDate", "VisitTime");
+
+                    b.HasIndex("DoctorId", "VisitDate", "VisitTime");
+
+                    b.ToTable("PreliminaryBookings", (string)null);
+                });
+
             modelBuilder.Entity("ClinicSystem.Domain.Entities.SalaryAdjustment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1726,6 +1783,21 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("Visit");
+                });
+
+            modelBuilder.Entity("ClinicSystem.Domain.Entities.PreliminaryBooking", b =>
+                {
+                    b.HasOne("ClinicSystem.Domain.Entities.DoctorProfile", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ClinicSystem.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("ClinicSystem.Domain.Entities.StaffDoctorAssignment", b =>
