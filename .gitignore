@@ -44,3 +44,5 @@ logs/
 *.sql
 *.dump
 *.backup
+
+/backups/
