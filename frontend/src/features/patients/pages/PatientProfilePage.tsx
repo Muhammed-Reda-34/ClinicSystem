@@ -1,3 +1,4 @@
+import { parseVisitClinicalNote } from "../../visits/clinicalNoteCodec";
 import axios from "axios";
 import {
   useMemo,
@@ -1471,7 +1472,8 @@ export function PatientProfilePage() {
                           ))}
                       </div>
 
-                      {(visit.clinicalNotes
+                      {((parseVisitClinicalNote(visit.clinicalNotes).doctorNote
+                        || parseVisitClinicalNote(visit.clinicalNotes).imagingReference)
                         || visit.treatments.some(item => item.notes)) && (
                         <div className={styles.visitClinicalNotes}>
                           {visit.treatments
@@ -1487,12 +1489,21 @@ export function PatientProfilePage() {
                               </div>
                             ))}
 
-                          {visit.clinicalNotes && (
+                          {parseVisitClinicalNote(visit.clinicalNotes).imagingReference && (
+                            <div>
+                              <strong>
+                                {ar ? "رقم الأشعة / الصورة" : "X-ray / image reference"}
+                              </strong>
+                              <p>{parseVisitClinicalNote(visit.clinicalNotes).imagingReference}</p>
+                            </div>
+                          )}
+
+                          {parseVisitClinicalNote(visit.clinicalNotes).doctorNote && (
                             <div>
                               <strong>
                                 {ar ? "ملاحظة الطبيب" : "Doctor note"}
                               </strong>
-                              <p>{visit.clinicalNotes}</p>
+                              <p>{parseVisitClinicalNote(visit.clinicalNotes).doctorNote}</p>
                             </div>
                           )}
                         </div>

@@ -13,9 +13,20 @@ import {
   getSelectedDoctorId,
 } from "./doctorScopeStore";
 
+const configuredBaseURL =
+  import.meta.env.VITE_API_BASE_URL?.trim();
+
+if (
+  import.meta.env.PROD
+  && !configuredBaseURL
+) {
+  throw new Error(
+    "VITE_API_BASE_URL is required in production.",
+  );
+}
+
 const baseURL =
-  import.meta.env
-    .VITE_API_BASE_URL
+  configuredBaseURL
   ?? "http://localhost:5081/api/v1";
 
 const clientHeaders = {

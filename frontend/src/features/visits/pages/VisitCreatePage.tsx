@@ -36,6 +36,10 @@ import {
   type VisitDraft,
   type VisitDraftTreatment,
 } from "../visitDraft";
+import {
+  composeVisitClinicalNote,
+  parseVisitClinicalNote,
+} from "../clinicalNoteCodec";
 import styles from "./VisitCreatePage.module.css";
 
 function isConsultationService(service: {
@@ -84,8 +88,13 @@ export function VisitCreatePage() {
   const [treatments, setTreatments] = useState<VisitDraftTreatment[]>(
     initialDraft?.treatments ?? [],
   );
+  const initialClinicalBundle = parseVisitClinicalNote(initialDraft?.clinicalNotes);
+
   const [clinicalNotes, setClinicalNotes] = useState(
-    initialDraft?.clinicalNotes ?? "",
+    initialClinicalBundle.doctorNote,
+  );
+  const [imagingReference, setImagingReference] = useState(
+    initialClinicalBundle.imagingReference,
   );
   const [hasDeposit, setHasDeposit] = useState(
     initialDraft?.hasDeposit ?? false,
@@ -189,7 +198,7 @@ export function VisitCreatePage() {
       doctorId,
       appointmentId: appointmentId || null,
       treatments: nextTreatments,
-      clinicalNotes: clinicalNotes.trim() || null,
+      clinicalNotes: composeVisitClinicalNote(clinicalNotes, imagingReference),
       hasDeposit,
       depositAmount: hasDeposit ? Number(depositAmount || 0) : 0,
       depositPaymentMethod:
@@ -710,6 +719,26 @@ export function VisitCreatePage() {
             onChange={event => setClinicalNotes(event.target.value)}
             onBlur={() => persist()}
           />
+        </label>
+
+        <label className={styles.field}>
+          <span>{ar ? "رقم الأشعة / الصورة" : "X-ray / image reference"}</span>
+          <input
+            type="text"
+            value={imagingReference}
+            placeholder={
+              ar
+                ? "مثال: PAN-123212 أو رقم صورة الفك"
+                : "Example: PAN-123212 or jaw image number"
+            }
+            onChange={event => setImagingReference(event.target.value)}
+            onBlur={() => persist()}
+          />
+          <small>
+            {ar
+              ? "يفيد في الرجوع السريع للصورة أو الأشعة من ملف الزيارة."
+              : "Useful for quickly finding the related scan or radiology image later."}
+          </small>
         </label>
 
         <button

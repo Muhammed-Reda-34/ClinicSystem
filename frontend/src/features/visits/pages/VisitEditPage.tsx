@@ -27,6 +27,8 @@ import {
 import type { UpdateVisitTreatment } from "../../../types/clinical";
 import styles from "./VisitEditPage.module.css";
 import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
+import { composeVisitClinicalNote, parseVisitClinicalNote } from "../clinicalNoteCodec";
 
 type EditableTreatment = UpdateVisitTreatment & {
   serviceName: string;
@@ -66,6 +68,7 @@ export function VisitEditPage() {
   const [initialized, setInitialized] = useState(false);
   const [visitDate, setVisitDate] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
+  const [imagingReference, setImagingReference] = useState("");
   const [discount, setDiscount] = useState("");
   const [extra, setExtra] = useState("");
   const [extraReason, setExtraReason] = useState("");
@@ -79,7 +82,9 @@ export function VisitEditPage() {
     if (!visit || initialized) return;
 
     setVisitDate(dateOnly(visit.visitDateUtc));
-    setClinicalNotes(visit.clinicalNotes ?? "");
+    const parsedClinical = parseVisitClinicalNote(visit.clinicalNotes);
+    setClinicalNotes(parsedClinical.doctorNote);
+    setImagingReference(parsedClinical.imagingReference);
     setDiscount(visit.discountAmount ? String(visit.discountAmount) : "");
     setExtra(visit.extraAmount ? String(visit.extraAmount) : "");
     setExtraReason(visit.extraReason ?? "");
@@ -114,7 +119,7 @@ export function VisitEditPage() {
 
       await updatePatientVisit(visitId, {
         visitDateUtc: new Date(`${visitDate}T12:00:00`).toISOString(),
-        clinicalNotes: clinicalNotes.trim() || null,
+        clinicalNotes: composeVisitClinicalNote(clinicalNotes, imagingReference),
         discountAmount: Number(discount || 0),
         extraAmount: Number(extra || 0),
         extraReason: extraReason.trim() || null,
@@ -226,14 +231,43 @@ export function VisitEditPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p>{ar ? "تعديل الزيارة" : "Edit visit"}</p>
-          <h1>{patientQuery.data.fullName}</h1>
-          <span>{patientQuery.data.patientCode} • {visit.doctorName}</span>
-        </div>
-        <Link to={`/patients/${patientId}`}>{ar ? "رجوع للبروفايل" : "Back to profile"}</Link>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Clinical Visit • Edit"
+        title={ar ? "تعديل الزيارة" : "Edit visit"}
+        subtitle={`${patientQuery.data.fullName} • ${patientQuery.data.patientCode} • ${visit.doctorName}`}
+        icon="edit"
+        actions={
+          <Link className={styles.headerLink} to={`/patients/${patientId}`}>
+            {ar ? "رجوع للبروفايل" : "Back to profile"}
+          </Link>
+        }
+        metrics={[
+          {
+            label: ar ? "العلاجات" : "Treatments",
+            value: treatments.length,
+            icon: "services",
+            tone: "primary",
+          },
+          {
+            label: ar ? "إجمالي الزيارة" : "Visit total",
+            value: `${totalPreview.toLocaleString()} EGP`,
+            icon: "debt",
+            tone: "success",
+          },
+          {
+            label: ar ? "المدفوع" : "Paid",
+            value: `${visit.paid.toLocaleString()} EGP`,
+            icon: "reports",
+            tone: "neutral",
+          },
+          {
+            label: ar ? "المتابعة" : "Follow-up",
+            value: followUpDate || (ar ? "بدون" : "None"),
+            icon: "followUp",
+            tone: followUpDate ? "warning" : "neutral",
+          },
+        ]}
+      />
 
       <form onSubmit={submit} className={styles.form}>
         <section className={styles.card}>
@@ -274,6 +308,20 @@ export function VisitEditPage() {
           <label className={styles.fullField}>
             <span>{ar ? "ملاحظة الطبيب" : "Doctor note"}</span>
             <textarea rows={4} value={clinicalNotes} onChange={e => setClinicalNotes(e.target.value)} />
+          </label>
+
+          <label className={styles.fullField}>
+            <span>{ar ? "رقم الأشعة / الصورة" : "X-ray / image reference"}</span>
+            <input
+              value={imagingReference}
+              placeholder={ar ? "مثال: XR-123212" : "Example: XR-123212"}
+              onChange={e => setImagingReference(e.target.value)}
+            />
+            <small className={styles.helperText}>
+              {ar
+                ? "رقم يدوي يرجع له الطبيب سريعًا للوصول إلى الأشعة أو الصورة داخل جهازه."
+                : "Manual reference used by the doctor to quickly locate the scan or image later."}
+            </small>
           </label>
         </section>
 

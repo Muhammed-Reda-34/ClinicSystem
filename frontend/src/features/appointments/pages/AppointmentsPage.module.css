@@ -1079,3 +1079,284 @@
     transition: none;
   }
 }
+
+/* ---- Phase 14 Batch 8 appointments polish ---- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.22fr);
+  gap: 1.35rem;
+}
+
+.formCard,
+.listCard {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.94));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 1.45rem;
+  padding: 1.3rem;
+  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.06);
+}
+
+.formHeading,
+.listHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.formHeading h2,
+.listHeader h2,
+.unscheduledTitle {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.formHeading p,
+.listHeader p,
+.scopeHint {
+  margin: 0.35rem 0 0;
+  color: var(--muted-foreground, #64748b);
+  line-height: 1.65;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.formCard label {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formCard label span {
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+}
+
+.formCard input,
+.formCard select,
+.searchBar input,
+.dayPicker input {
+  min-height: 2.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255,255,255,0.96);
+  padding: 0.82rem 0.95rem;
+  font: inherit;
+  color: var(--foreground, #0f172a);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.formCard input:focus,
+.formCard select:focus,
+.searchBar input:focus,
+.dayPicker input:focus {
+  border-color: rgba(14, 116, 144, 0.48);
+  box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.12);
+}
+
+.doctorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.doctorChips button,
+.primaryButton,
+.primaryAction,
+.secondaryAction,
+.clearSearch,
+.attendedButton,
+.noShowButton,
+.excusedButton {
+  min-height: 2.85rem;
+  border-radius: 1rem;
+  border: none;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.doctorChips button {
+  background: rgba(241, 245, 249, 0.95);
+  color: var(--foreground, #0f172a);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.doctorChipActive,
+.primaryButton,
+.primaryAction,
+.attendedButton {
+  background: linear-gradient(135deg, #0f766e, #0891b2);
+  color: #fff;
+  box-shadow: 0 16px 28px rgba(14, 116, 144, 0.2);
+}
+
+.secondaryAction,
+.clearSearch,
+.excusedButton {
+  background: rgba(14, 116, 144, 0.08);
+  color: var(--foreground, #0f172a);
+}
+
+.noShowButton {
+  background: rgba(185, 28, 28, 0.08);
+  color: #991b1b;
+  box-shadow: none;
+}
+
+.doctorChips button:hover,
+.primaryButton:hover,
+.primaryAction:hover,
+.secondaryAction:hover,
+.clearSearch:hover,
+.attendedButton:hover,
+.noShowButton:hover,
+.excusedButton:hover {
+  transform: translateY(-1px);
+}
+
+.notice,
+.existingPatient,
+.existingBlacklisted,
+.phoneChecking,
+.listError,
+.error {
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+}
+
+.noticeSuccess {
+  background: rgba(220, 252, 231, 0.9);
+  color: #166534;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.noticeWarning,
+.existingBlacklisted {
+  background: rgba(255, 237, 213, 0.95);
+  color: #9a3412;
+  border: 1px solid rgba(251, 146, 60, 0.28);
+}
+
+.noticeInfo,
+.existingPatient,
+.phoneChecking {
+  background: rgba(224, 242, 254, 0.95);
+  color: #0f4c81;
+  border: 1px solid rgba(56, 189, 248, 0.26);
+}
+
+.searchBar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.dayPicker {
+  margin-bottom: 1rem;
+}
+
+.bookingsList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.bookingRow {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 1.2rem;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+}
+
+.identityLine,
+.bookingDateTime,
+.statusBlock,
+.patientActions,
+.attendanceButtons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.bookingIdentity strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.bookingIdentity small,
+.bookingDateTime small,
+.statusBlock small {
+  color: var(--muted-foreground, #64748b);
+}
+
+.statusPill,
+.blacklistBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.78rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.scheduled {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+.attended {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.noShow {
+  background: rgba(185, 28, 28, 0.1);
+  color: #991b1b;
+}
+
+.excused {
+  background: rgba(217, 119, 6, 0.12);
+  color: #9a3412;
+}
+
+.blacklistBadge {
+  background: rgba(185, 28, 28, 0.12);
+  color: #991b1b;
+}
+
+.unscheduledSection {
+  margin-top: 1.35rem;
+}
+
+.emptyState {
+  padding: 1.2rem;
+  border-radius: 1.1rem;
+  background: rgba(248, 250, 252, 0.86);
+  color: var(--muted-foreground, #64748b);
+  text-align: center;
+  border: 1px dashed rgba(148, 163, 184, 0.28);
+}
+
+@media (max-width: 1080px) {
+  .layout,
+  .twoColumns,
+  .searchBar {
+    grid-template-columns: 1fr;
+  }
+}

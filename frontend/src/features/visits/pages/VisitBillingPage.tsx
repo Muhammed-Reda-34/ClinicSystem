@@ -19,6 +19,10 @@ import {
   saveVisitDraft,
   type VisitDraft,
 } from "../visitDraft";
+import {
+  composeVisitClinicalNote,
+  parseVisitClinicalNote,
+} from "../clinicalNoteCodec";
 import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import styles from "./VisitBillingPage.module.css";
 import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
@@ -52,9 +56,13 @@ export function VisitBillingPage() {
   );
   const [followUpLocal, setFollowUpLocal] = useState("");
   const [followUpMonths, setFollowUpMonths] = useState("");
+  const initialClinicalBundle = parseVisitClinicalNote(draft?.clinicalNotes);
   const [visitDate, setVisitDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [clinicalNotes, setClinicalNotes] = useState(
-    () => draft?.clinicalNotes ?? "",
+    () => initialClinicalBundle.doctorNote,
+  );
+  const [imagingReference, setImagingReference] = useState(
+    () => initialClinicalBundle.imagingReference,
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -144,7 +152,7 @@ export function VisitBillingPage() {
         doctorId: draft.doctorId,
         appointmentId: draft.appointmentId,
         visitDateUtc: new Date(`${visitDate}T12:00:00`).toISOString(),
-        clinicalNotes: clinicalNotes || null,
+        clinicalNotes: composeVisitClinicalNote(clinicalNotes, imagingReference),
         discountAmount: discount,
         extraAmount: extra,
         extraReason: extraReason || null,
@@ -480,6 +488,25 @@ export function VisitBillingPage() {
               value={clinicalNotes}
               onChange={event => setClinicalNotes(event.target.value)}
             />
+          </label>
+
+          <label className={styles.field}>
+            <span>{ar ? "رقم الأشعة / الصورة" : "X-ray / image reference"}</span>
+            <input
+              type="text"
+              value={imagingReference}
+              placeholder={
+                ar
+                  ? "مثال: OPG-123212 أو رقم صورة المريض"
+                  : "Example: OPG-123212 or patient image number"
+              }
+              onChange={event => setImagingReference(event.target.value)}
+            />
+            <small>
+              {ar
+                ? "سيظهر هذا الرقم داخل سجل الزيارة في بروفايل المريض."
+                : "This reference will appear inside the visit history on the patient profile."}
+            </small>
           </label>
         </section>
 

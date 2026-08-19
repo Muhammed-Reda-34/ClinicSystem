@@ -46,3 +46,5 @@ logs/
 *.backup
 
 /backups/
+
+/production-readiness-report.txt
