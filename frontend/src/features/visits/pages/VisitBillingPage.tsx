@@ -19,7 +19,9 @@ import {
   saveVisitDraft,
   type VisitDraft,
 } from "../visitDraft";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import styles from "./VisitBillingPage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 export function VisitBillingPage() {
   const { patientId } = useParams();
@@ -73,7 +75,7 @@ export function VisitBillingPage() {
   const remaining = Math.max(0, total - initialPayment);
   const depositApplied = Boolean(draft?.hasDeposit && initialPayment > 0);
 
-  function applyFollowUpMonths(value: string) {
+  function applyFollowUpMonths(value: string, baseDate = visitDate) {
     setFollowUpMonths(value);
     if (!value) {
       setFollowUpLocal("");
@@ -81,7 +83,7 @@ export function VisitBillingPage() {
     }
 
     const months = Number(value);
-    const base = visitDate ? new Date(`${visitDate}T12:00:00`) : new Date();
+    const base = baseDate ? new Date(`${baseDate}T12:00:00`) : new Date();
     base.setMonth(base.getMonth() + months);
     setFollowUpLocal(base.toISOString().slice(0, 10));
   }
@@ -154,10 +156,17 @@ export function VisitBillingPage() {
           quantity: 1,
           toothNumbers: item.toothNumbers,
           notes: item.notes,
+          completesTreatmentCase: item.completesTreatmentCase ?? true,
         })),
         initialPayment,
         paymentMethod: paymentMethod || null,
         initialPaymentNotes: depositApplied ? "Deposit" : null,
+        isHistoricalEntry: (() => {
+          const selected = new Date(`${visitDate}T00:00:00`);
+          const now = new Date();
+          const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          return selected < currentMonthStart;
+        })(),
       });
 
       clearVisitDraft(patientId);
@@ -213,21 +222,43 @@ export function VisitBillingPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>Clinical Visit • Step 02</p>
-          <h1>{ar ? "الحساب والمتابعة" : "Billing & follow-up"}</h1>
-          <p>
-            {patientQuery.data.fullName}
-            {" • "}
-            {patientQuery.data.patientCode}
-          </p>
-        </div>
-
-        <Link className={styles.back} to={treatmentStepUrl()}>
-          {ar ? "تعديل خطة الزيارة" : "Edit visit plan"}
-        </Link>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Clinical Visit • Step 02"
+        title={ar ? "الحساب والمتابعة" : "Billing & follow-up"}
+        subtitle={`${patientQuery.data.fullName} • ${patientQuery.data.patientCode}`}
+        icon="debt"
+        actions={
+          <Link className={styles.back} to={treatmentStepUrl()}>
+            {ar ? "تعديل خطة الزيارة" : "Edit visit plan"}
+          </Link>
+        }
+        metrics={[
+          {
+            label: ar ? "بنود الزيارة" : "Visit items",
+            value: draft.treatments.length,
+            icon: "services",
+            tone: "primary",
+          },
+          {
+            label: ar ? "قبل الخصم" : "Subtotal",
+            value: `${subtotal.toLocaleString()} EGP`,
+            icon: "reports",
+            tone: "neutral",
+          },
+          {
+            label: ar ? "المدفوع" : "Paid",
+            value: `${initialPayment.toLocaleString()} EGP`,
+            icon: "debt",
+            tone: initialPayment > 0 ? "success" : "neutral",
+          },
+          {
+            label: ar ? "المتبقي" : "Remaining",
+            value: `${remaining.toLocaleString()} EGP`,
+            icon: "warning",
+            tone: remaining > 0 ? "warning" : "success",
+          },
+        ]}
+      />
 
       <form className={styles.form} onSubmit={submit}>
         <section className={styles.card}>
@@ -258,6 +289,11 @@ export function VisitBillingPage() {
                   {item.notes && (
                     <small className={styles.itemNote}>
                       {item.notes}
+                    </small>
+                  )}
+                  {item.completesTreatmentCase === false && (
+                    <small className={styles.itemNote}>
+                      {ar ? "يحتاج جلسات علاج إضافية" : "Needs additional treatment sessions"}
                     </small>
                   )}
                 </div>
@@ -375,13 +411,13 @@ export function VisitBillingPage() {
 
             <label className={styles.field}>
               <span>{ar ? "تاريخ الزيارة" : "Visit date"}</span>
-              <input
-                type="date"
+              <SimpleDateInput
                 value={visitDate}
                 max={new Date().toISOString().slice(0, 10)}
-                onChange={event => {
-                  setVisitDate(event.target.value);
-                  if (followUpMonths) applyFollowUpMonths(followUpMonths);
+                required
+                onChange={value => {
+                  setVisitDate(value);
+                  if (followUpMonths) applyFollowUpMonths(followUpMonths, value);
                 }}
               />
             </label>
@@ -404,12 +440,11 @@ export function VisitBillingPage() {
 
             <label className={styles.field}>
               <span>{t("followUpDate")}</span>
-              <input
-                type="date"
+              <SimpleDateInput
                 value={followUpLocal}
-                onChange={event => {
+                onChange={value => {
                   setFollowUpMonths("");
-                  setFollowUpLocal(event.target.value);
+                  setFollowUpLocal(value);
                 }}
               />
             </label>

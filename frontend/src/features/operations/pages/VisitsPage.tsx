@@ -21,6 +21,7 @@ import {
   getRecentVisits,
 } from "../api/operationsApi";
 import styles from "./VisitsPage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 function localDayRange(
   dateValue: string,
@@ -174,14 +175,9 @@ export function VisitsPage() {
               : "Visit date"}
           </span>
 
-          <input
-            type="date"
+          <SimpleDateInput
             value={date}
-            onChange={event =>
-              setDate(
-                event.target.value,
-              )
-            }
+            onChange={setDate}
           />
         </label>
 

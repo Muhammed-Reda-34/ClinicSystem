@@ -31,7 +31,29 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(await _service.GetStaffAsync(cancellationToken));
     }
 
-    
+    [HttpPost("doctors")]
+    public async Task<IActionResult> CreateDoctor(
+        CreateDoctorRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _service.CreateDoctorAsync(
+            new CreateDoctorCommand(
+                request.FullName,
+                request.Email,
+                request.Password,
+                request.Specialization),
+            cancellationToken);
+
+        if (!result.Ok)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+
+        return Created(
+            $"/api/v1/admin/users/doctors/{result.Id}",
+            new { doctorId = result.Id });
+    }
+
     [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff(
         CreateStaffRequest request,

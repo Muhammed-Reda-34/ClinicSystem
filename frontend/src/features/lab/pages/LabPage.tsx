@@ -1,4 +1,5 @@
 import {
+  useMemo,
   useState,
   type FormEvent,
 } from "react";
@@ -9,11 +10,13 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useLanguage } from "../../../i18n/LanguageContext";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import type { LabPatientLookup } from "../../../types/operations";
 import {
   createQuickLabExpense,
   getLabExpenses,
   lookupLabPatient,
+  setLabExpensePaymentStatus,
 } from "../api/labApi";
 import styles from "./LabPage.module.css";
 
@@ -32,8 +35,8 @@ function errorMessage(error: unknown, ar: boolean) {
   }
 
   return ar
-    ? "تعذر تسجيل قيمة المعمل. راجع البيانات وحاول مرة أخرى."
-    : "Could not record the lab cost. Please review the data and try again.";
+    ? "تعذر تنفيذ العملية. راجع البيانات وحاول مرة أخرى."
+    : "Could not complete the action. Please review the data and try again.";
 }
 
 export function LabPage() {
@@ -46,6 +49,7 @@ export function LabPage() {
     useState<LabPatientLookup | null>(null);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [isPaid, setIsPaid] = useState(false);
   const [notice, setNotice] = useState("");
 
   const lookupQuery = useQuery({
@@ -60,6 +64,18 @@ export function LabPage() {
     queryFn: getLabExpenses,
   });
 
+  const totals = useMemo(() => {
+    const rows = expensesQuery.data ?? [];
+    return rows.reduce(
+      (acc, item) => {
+        if (item.isPaid) acc.paid += item.amount;
+        else acc.unpaid += item.amount;
+        return acc;
+      },
+      { paid: 0, unpaid: 0 },
+    );
+  }, [expensesQuery.data]);
+
   const saveMutation = useMutation({
     mutationFn: () => {
       if (!selectedPatient) {
@@ -70,19 +86,48 @@ export function LabPage() {
         patientId: selectedPatient.patientId,
         description: description.trim() || null,
         amount: Number(amount),
+        isPaid,
       });
     },
     onMutate: () => setNotice(""),
     onSuccess: async () => {
       setNotice(
-        ar
-          ? "تم تسجيل قيمة المعمل وخصمها من حساب الطبيب المالي."
-          : "Lab cost recorded and included in the doctor's financial totals.",
+        isPaid
+          ? (ar
+              ? "تم تسجيل قيمة المعمل كمدفوعة وتم احتسابها ضمن مصروفات الطبيب."
+              : "Lab cost recorded as paid and included in the doctor's expenses.")
+          : (ar
+              ? "تم تسجيل قيمة المعمل كغير مدفوعة ولن تخصم من الإيراد حتى يتم الدفع."
+              : "Lab cost recorded as unpaid and will not reduce revenue until it is paid."),
       );
       setSearch("");
       setSelectedPatient(null);
       setDescription("");
       setAmount("");
+      setIsPaid(false);
+
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ["lab-expenses"] }),
+        client.invalidateQueries({ queryKey: ["dashboard"] }),
+        client.invalidateQueries({ queryKey: ["finance"] }),
+      ]);
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ expenseId, nextPaid }: { expenseId: string; nextPaid: boolean }) =>
+      setLabExpensePaymentStatus(expenseId, nextPaid),
+    onMutate: () => setNotice(""),
+    onSuccess: async (_, variables) => {
+      setNotice(
+        variables.nextPaid
+          ? (ar
+              ? "تم تسجيل دفع قيمة المعمل، وتم خصمها ماليًا بتاريخ اليوم."
+              : "Lab payment marked as paid and included financially as of today.")
+          : (ar
+              ? "تم إلغاء حالة الدفع، والقيمة لم تعد مخصومة من الحساب المالي."
+              : "Payment status reverted to unpaid and is no longer deducted financially."),
+      );
 
       await Promise.all([
         client.invalidateQueries({ queryKey: ["lab-expenses"] }),
@@ -110,25 +155,42 @@ export function LabPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.hero}>
-        <div>
-          <p className={styles.eyebrow}>Laboratory</p>
-          <h1>{ar ? "المعمل" : "Laboratory"}</h1>
-          <p>
-            {ar
-              ? "تسجيل مصروف المعمل في ثوانٍ: اختر المريض، اكتب وصفًا لو محتاج، وسجل القيمة."
-              : "Record a lab expense in seconds: choose the patient, add an optional description, then enter the amount."}
-          </p>
-        </div>
-
-        <div className={styles.flowHint}>
-          <span>01</span>
-          <strong>{ar ? "المريض" : "Patient"}</strong>
-          <i />
-          <span>02</span>
-          <strong>{ar ? "القيمة" : "Amount"}</strong>
-        </div>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Laboratory"
+        title={ar ? "المعمل" : "Laboratory"}
+        subtitle={
+          ar
+            ? "سجل قيمة المعمل وحدد حالة الدفع الفعلية. غير المدفوع لا يُخصم من إيراد الطبيب."
+            : "Record the lab cost and its real payment status. Unpaid values do not reduce doctor revenue."
+        }
+        icon="lab"
+        metrics={[
+          {
+            label: ar ? "مدفوع" : "Paid",
+            value: `${money(totals.paid)} EGP`,
+            icon: "reports",
+            tone: "success",
+          },
+          {
+            label: ar ? "غير مدفوع" : "Unpaid",
+            value: `${money(totals.unpaid)} EGP`,
+            icon: "warning",
+            tone: totals.unpaid > 0 ? "warning" : "success",
+          },
+          {
+            label: ar ? "إجمالي السجلات" : "Total entries",
+            value: (expensesQuery.data ?? []).length,
+            icon: "lab",
+            tone: "primary",
+          },
+          {
+            label: ar ? "عمليات مدفوعة" : "Paid entries",
+            value: (expensesQuery.data ?? []).filter(item => item.isPaid).length,
+            icon: "debt",
+            tone: "neutral",
+          },
+        ]}
+      />
 
       <div className={styles.layout}>
         <form className={styles.entryCard} onSubmit={submit}>
@@ -140,8 +202,8 @@ export function LabPage() {
               <h2>{ar ? "تسجيل قيمة معمل" : "Record lab cost"}</h2>
               <p>
                 {ar
-                  ? "ابدأ بكتابة اسم المريض أو رقم الاستمارة، ثم اختر المريض من النتائج."
-                  : "Start typing the patient name or form number, then choose the patient from the results."}
+                  ? "اختر المريض، أدخل القيمة، ثم حدد حالة الدفع الفعلية."
+                  : "Choose the patient, enter the amount, then choose the real payment status."}
               </p>
             </div>
           </div>
@@ -157,15 +219,11 @@ export function LabPage() {
                   setSelectedPatient(null);
                 }
               }}
-              placeholder={
-                ar
-                  ? "مثال: محمد أحمد أو 1025"
-                  : "Example: Ahmed Mohamed or 1025"
-              }
+              placeholder={ar ? "مثال: محمد أحمد أو 1025" : "Example: Ahmed Mohamed or 1025"}
             />
             <small>
               {ar
-                ? "اكتب حرفين على الأقل. يمكنك البحث أيضًا بكود المريض أو رقم الهاتف."
+                ? "اكتب حرفين على الأقل. البحث يعمل أيضًا بكود المريض أو الهاتف."
                 : "Type at least two characters. Patient code and phone also work."}
             </small>
           </label>
@@ -245,8 +303,8 @@ export function LabPage() {
               onChange={event => setDescription(event.target.value)}
               placeholder={
                 ar
-                  ? "مثال: تاج زيركون، طقم، إصلاح... ويمكن تركه فارغًا"
-                  : "Example: zircon crown, denture, repair... or leave blank"
+                  ? "مثال: تاج زيركون، طقم، إصلاح..."
+                  : "Example: zircon crown, denture, repair..."
               }
             />
           </label>
@@ -262,19 +320,50 @@ export function LabPage() {
                 inputMode="decimal"
                 value={amount}
                 onChange={event => setAmount(event.target.value)}
-                placeholder="0.00"
+                placeholder={ar ? "اكتب القيمة" : "Enter amount"}
               />
               <b>EGP</b>
             </div>
           </label>
 
+          <div className={styles.paymentBlock}>
+            <span>{ar ? "هل تم دفع قيمة المعمل؟" : "Has the lab cost been paid?"}</span>
+            <div className={styles.paymentToggle}>
+              <button
+                type="button"
+                className={isPaid ? styles.paidActive : ""}
+                onClick={() => setIsPaid(true)}
+              >
+                <span>✓</span>
+                {ar ? "دفع" : "Paid"}
+              </button>
+              <button
+                type="button"
+                className={!isPaid ? styles.unpaidActive : ""}
+                onClick={() => setIsPaid(false)}
+              >
+                <span>○</span>
+                {ar ? "لم يدفع" : "Unpaid"}
+              </button>
+            </div>
+            <small>
+              {isPaid
+                ? (ar
+                    ? "سيتم احتساب القيمة كمصروف وخصمها من صافي الطبيب."
+                    : "This value will count as an expense and reduce the doctor's net.")
+                : (ar
+                    ? "لن يتم خصم القيمة من الإيرادات حتى تضغط دفع لاحقًا."
+                    : "This value will not reduce revenue until it is marked paid later.")}
+            </small>
+          </div>
+
           {notice && (
             <div className={styles.success}>{notice}</div>
           )}
 
-          {saveMutation.isError && (
+          {(saveMutation.isError || statusMutation.isError) && (
             <div className={styles.error}>
-              {errorMessage(saveMutation.error, ar)}
+              {errorMessage(saveMutation.error ?? statusMutation.error, ar)}
             </div>
           )}
 
@@ -302,22 +391,54 @@ export function LabPage() {
           </div>
 
           <div className={styles.historyList}>
-            {expensesQuery.data?.slice(0, 25).map(expense => (
-              <article key={expense.id}>
-                <div>
-                  <strong>{expense.patientName}</strong>
+            {expensesQuery.data?.slice(0, 40).map(expense => (
+              <article key={expense.id} className={!expense.isPaid ? styles.unpaidRow : ""}>
+                <div className={styles.historyInfo}>
+                  <div className={styles.historyTitle}>
+                    <strong>{expense.patientName}</strong>
+                    <span className={expense.isPaid ? styles.paidBadge : styles.unpaidBadge}>
+                      {expense.isPaid
+                        ? (ar ? "مدفوع" : "Paid")
+                        : (ar ? "لم يدفع" : "Unpaid")}
+                    </span>
+                  </div>
                   <span>
                     {expense.serviceOrItemName === "Lab expense"
                       ? (ar ? "بدون وصف" : "No description")
                       : expense.serviceOrItemName}
                   </span>
                   <small>
+                    {ar ? "تسجيل: " : "Recorded: "}
                     {new Date(expense.expenseDateUtc).toLocaleString(
                       ar ? "ar-EG" : "en-GB",
                     )}
                   </small>
+                  {expense.paidAtUtc && (
+                    <small>
+                      {ar ? "دفع: " : "Paid: "}
+                      {new Date(expense.paidAtUtc).toLocaleString(
+                        ar ? "ar-EG" : "en-GB",
+                      )}
+                    </small>
+                  )}
                 </div>
-                <b>{money(expense.amount)} EGP</b>
+
+                <div className={styles.historyActions}>
+                  <b>{money(expense.amount)} EGP</b>
+                  <button
+                    type="button"
+                    disabled={statusMutation.isPending}
+                    className={expense.isPaid ? styles.markUnpaidButton : styles.markPaidButton}
+                    onClick={() => statusMutation.mutate({
+                      expenseId: expense.id,
+                      nextPaid: !expense.isPaid,
+                    })}
+                  >
+                    {expense.isPaid
+                      ? (ar ? "إلغاء الدفع" : "Mark unpaid")
+                      : (ar ? "تسجيل دفع" : "Mark paid")}
+                  </button>
+                </div>
               </article>
             ))}
 

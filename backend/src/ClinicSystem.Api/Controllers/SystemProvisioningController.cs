@@ -10,7 +10,7 @@ namespace ClinicSystem.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/system-provisioning")]
-[AllowAnonymous]
+[Authorize(Roles = "Owner")]
 [EnableRateLimiting("api")]
 public sealed class SystemProvisioningController : ControllerBase
 {

@@ -14,6 +14,11 @@ public sealed class LabExpense
     public DateTime ExpenseDateUtc { get; set; }
     public string? Notes { get; set; }
 
+    // A lab value only affects financial reports once it is actually paid.
+    public bool IsPaid { get; set; }
+    public DateTime? PaidAtUtc { get; set; }
+    public Guid? PaidByUserId { get; set; }
+
     public Guid CreatedByUserId { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 

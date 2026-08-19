@@ -1,0 +1,117 @@
+.wrap {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selects {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: .72fr 1.15fr .95fr;
+  gap: 5px;
+}
+
+.selects select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 8px;
+  color: var(--c-text, #1f3840);
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border, #d3e0e3);
+  border-radius: 9px;
+  outline: 0;
+  cursor: pointer;
+  font-weight: 700;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.selects select:hover {
+  background: var(--c-surface);
+  border-color: #9dc6cd;
+}
+
+.selects select:focus {
+  background: var(--c-surface);
+  border-color: #67aeb9;
+  box-shadow: 0 0 0 3px rgba(40,139,151,.09);
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+}
+
+.actions button {
+  min-height: 40px;
+  padding: 0 9px;
+  color: var(--c-primary-strong, #145f6a);
+  background: var(--c-primary-soft, #eef8f9);
+  border: 1px solid #c9e0e4;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 900;
+  transition: transform .14s ease, border-color .14s ease;
+}
+
+.actions button:hover {
+  transform: translateY(-1px);
+  border-color: #a9ced4;
+}
+
+.actions .clear {
+  color: #8c4a4a;
+  background: #fff5f5;
+  border-color: #efd4d4;
+}
+
+@media (max-width: 680px) {
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: stretch;
+  }
+
+  .selects {
+    gap: 4px;
+  }
+
+  .selects select {
+    min-height: 44px;
+    padding-inline: 5px;
+  }
+
+  .actions {
+    display: grid;
+  }
+
+  .actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 420px) {
+  .wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selects select,
+  .actions button {
+    transition: none;
+  }
+}

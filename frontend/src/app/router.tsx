@@ -20,9 +20,6 @@ import {
   LoginPage,
 } from "../features/auth/pages/LoginPage";
 import {
-  SystemProvisioningPage,
-} from "../features/provisioning/pages/SystemProvisioningPage";
-import {
   DashboardPage,
 } from "../features/dashboard/pages/DashboardPage";
 import {
@@ -59,6 +56,12 @@ import {
   VisitBillingPage,
 } from "../features/visits/pages/VisitBillingPage";
 import {
+  VisitEditPage,
+} from "../features/visits/pages/VisitEditPage";
+import {
+  TreatmentSessionPage,
+} from "../features/visits/pages/TreatmentSessionPage";
+import {
   DebtsPage,
 } from "../features/visits/pages/DebtsPage";
 import {
@@ -91,10 +94,6 @@ import {
 
 export const router =
   createBrowserRouter([
-    {
-      path: "/system-provisioning",
-      Component: SystemProvisioningPage,
-    },
     {
       path: "/login",
       Component: LoginPage,
@@ -159,6 +158,18 @@ export const router =
                 "patients/:patientId/visits/new/billing",
               Component:
                 VisitBillingPage,
+            },
+            {
+              path:
+                "patients/:patientId/visits/:visitId/edit",
+              Component:
+                VisitEditPage,
+            },
+            {
+              path:
+                "patients/:patientId/treatments/:treatmentItemId/session/new",
+              Component:
+                TreatmentSessionPage,
             },
             {
               path:
@@ -236,18 +247,18 @@ export const router =
                   Component:
                     SettingsPage,
                 },
-                {
-                  path:
-                    "users",
-                  Component:
-                    UsersPage,
-                },
               ],
             },
             {
               Component:
                 OwnerRoute,
               children: [
+                {
+                  path:
+                    "users",
+                  Component:
+                    UsersPage,
+                },
                 {
                   path:
                     "audit",

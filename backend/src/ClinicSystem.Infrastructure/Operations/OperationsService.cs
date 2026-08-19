@@ -43,7 +43,8 @@ public sealed class OperationsService
             .AsNoTracking()
             .Where(
                 visit =>
-                    allowedDoctorIds
+                    !visit.IsVoided
+                    && allowedDoctorIds
                     .Contains(visit.DoctorId));
 
         if (fromUtc is not null)

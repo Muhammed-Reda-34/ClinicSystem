@@ -10,6 +10,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { AppIcon } from "../../../components/icons/AppIcon";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import {
   useLanguage,
 } from "../../../i18n/LanguageContext";
@@ -28,6 +30,7 @@ import {
   setPreliminaryBookingAttendance,
 } from "../api/preliminaryBookingsApi";
 import styles from "./AppointmentsPage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 function localDateKey(
   value = new Date(),
@@ -472,43 +475,55 @@ export function AppointmentsPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>
-            Preliminary Booking
-          </p>
-
-          <h1>
-            {ar
-              ? "الحجز المبدئي"
-              : "Preliminary Booking"}
-          </h1>
-
-          <p>
-            {ar
-              ? "تسجيل سريع للمريض قبل الزيارة. الاسم ورقم الهاتف مطلوبان، والتاريخ والوقت اختياريان."
-              : "Quick patient booking before the visit. Name and phone are required; date and time are optional."}
-          </p>
-        </div>
-
-        <label className={styles.dayPicker}>
-          <span>
-            {ar
-              ? "عرض حجوزات يوم"
-              : "Show bookings for"}
-          </span>
-
-          <input
-            type="date"
-            value={date}
-            onChange={event => {
-              const next = event.target.value;
-              setDate(next);
-              setVisitDate(next);
-            }}
-          />
-        </label>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Preliminary Booking"
+        title={ar ? "الحجز المبدئي" : "Preliminary Booking"}
+        subtitle={
+          ar
+            ? "سجل المريض بسرعة، اختر الطبيب والموعد، وكمل الزيارة من نفس الحجز بدون خطوات زائدة."
+            : "Register the patient quickly, choose the doctor and time, then continue to the visit without extra steps."
+        }
+        icon="calendar"
+        badge={selectedDoctor?.fullName ?? (ar ? "كل الأطباء" : "All doctors")}
+        actions={
+          <label className={styles.dayPicker}>
+            <span>{ar ? "عرض حجوزات يوم" : "Show bookings for"}</span>
+            <SimpleDateInput
+              value={date}
+              onChange={next => {
+                setDate(next);
+                setVisitDate(next);
+              }}
+            />
+          </label>
+        }
+        metrics={[
+          {
+            label: ar ? "إجمالي اليوم" : "Day total",
+            value: summary.total,
+            icon: "calendar",
+            tone: "primary",
+          },
+          {
+            label: ar ? "حضر" : "Attended",
+            value: summary.attended,
+            icon: "patients",
+            tone: "success",
+          },
+          {
+            label: ar ? "لم يحضر" : "No show",
+            value: summary.noShow,
+            icon: "warning",
+            tone: summary.noShow > 0 ? "danger" : "neutral",
+          },
+          {
+            label: ar ? "اعتذر" : "Excused",
+            value: summary.excused,
+            icon: "followUp",
+            tone: "warning",
+          },
+        ]}
+      />
 
       {notice && (
         <div
@@ -535,35 +550,13 @@ export function AppointmentsPage() {
         </div>
       )}
 
-      <div className={styles.summaryGrid}>
-        <article className={styles.summaryCard}>
-          <span>{ar ? "إجمالي اليوم" : "Day total"}</span>
-          <strong>{summary.total}</strong>
-        </article>
-
-        <article className={`${styles.summaryCard} ${styles.summaryAttended}`}>
-          <span>{ar ? "حضر" : "Attended"}</span>
-          <strong>{summary.attended}</strong>
-        </article>
-
-        <article className={`${styles.summaryCard} ${styles.summaryNoShow}`}>
-          <span>{ar ? "لم يحضر" : "No show"}</span>
-          <strong>{summary.noShow}</strong>
-        </article>
-
-        <article className={`${styles.summaryCard} ${styles.summaryExcused}`}>
-          <span>{ar ? "اعتذر" : "Excused"}</span>
-          <strong>{summary.excused}</strong>
-        </article>
-      </div>
-
       <div className={styles.layout}>
         <form
           className={styles.formCard}
           onSubmit={submit}
         >
           <div className={styles.formHeading}>
-            <span>01</span>
+            <span><AppIcon name="plus" /></span>
             <div>
               <h2>
                 {ar
@@ -604,6 +597,22 @@ export function AppointmentsPage() {
               </small>
             )}
           </label>
+
+          {doctors.length > 1 && (
+            <div className={styles.doctorChips}>
+              {doctors.map(doctor => (
+                <button
+                  key={doctor.doctorId}
+                  type="button"
+                  className={doctor.doctorId === selectedDoctor?.doctorId ? styles.doctorChipActive : ""}
+                  onClick={() => selectDoctor(doctor.doctorId)}
+                >
+                  <span>{doctor.fullName.trim().charAt(0)}</span>
+                  {doctor.fullName}
+                </button>
+              ))}
+            </div>
+          )}
 
           <label>
             <span>{ar ? "اسم المريض" : "Patient name"}</span>
@@ -683,10 +692,9 @@ export function AppointmentsPage() {
                   ? "تاريخ الزيارة — اختياري"
                   : "Visit date — optional"}
               </span>
-              <input
-                type="date"
+              <SimpleDateInput
                 value={visitDate}
-                onChange={event => setVisitDate(event.target.value)}
+                onChange={setVisitDate}
               />
             </label>
 
@@ -720,6 +728,7 @@ export function AppointmentsPage() {
               || !phoneNumber.trim()
             }
           >
+            {!createMutation.isPending && <AppIcon name="plus" />}
             {createMutation.isPending
               ? ar
                 ? "جاري الحفظ..."
@@ -761,6 +770,7 @@ export function AppointmentsPage() {
               }
             />
             <button type="submit">
+              <AppIcon name="search" />
               {ar ? "بحث" : "Search"}
             </button>
             {appliedSearch && (

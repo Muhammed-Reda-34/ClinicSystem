@@ -1,20 +1,42 @@
 /*
-  Intentionally minimal.
-  Page/component styling lives in CSS Modules.
-  These rules only provide responsive safety rails.
+  Global responsive safety rails for the clinic application.
+  Component appearance stays inside CSS Modules; this file prevents
+  accidental horizontal overflow and improves touch ergonomics everywhere.
 */
 
 html,
 body,
 #root {
+  width: 100%;
   max-width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  overscroll-behavior-x: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 img,
 video,
 canvas {
-  max-width: 100%;
   height: auto;
 }
 
@@ -26,14 +48,139 @@ button {
   min-width: 0;
 }
 
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  caret-color: var(--c-primary);
+}
+
+textarea {
+  resize: vertical;
+}
+
 pre,
 code {
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 
+/* Keep long IDs, phone numbers and API text from breaking mobile layouts. */
+[data-breakable],
+.breakable {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 @media (max-width: 900px) {
-  body {
-    -webkit-text-size-adjust: 100%;
+  /* 16px prevents iOS Safari from zooming when a field receives focus. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  button,
+  a {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 520px) {
+  dialog,
+  [role="dialog"] {
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Phase 14 / Batch 7 - dark mode surface and form normalization */
+html,
+body,
+#root {
+  background: var(--c-bg);
+  color: var(--c-text);
+  transition: background-color .2s ease, color .2s ease;
+}
+
+body {
+  background: var(--c-bg);
+}
+
+input,
+select,
+textarea {
+  color: var(--c-text);
+  background-color: var(--c-surface);
+  border-color: var(--c-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--c-text-muted);
+  opacity: .78;
+}
+
+option {
+  color: var(--c-text);
+  background: var(--c-surface);
+}
+
+:root[data-theme="dark"] {
+  scrollbar-color: #35545e #0b1a20;
+}
+
+:root[data-theme="dark"] ::selection {
+  color: #07171c;
+  background: #83d8e4;
+}
+
+/* CSS Modules still contain a few legacy white/light neutral surfaces.
+   These scoped fallbacks keep those areas readable in dark mode without
+   changing clinical status colors or semantic danger/warning badges. */
+:root[data-theme="dark"] :where(div, section, article, aside, form)[class*="card" i],
+:root[data-theme="dark"] :where(div, section, article, aside, form)[class*="panel" i],
+:root[data-theme="dark"] :where(div, section, article, aside, form)[class*="surface" i],
+:root[data-theme="dark"] :where(div, section, article, aside, form)[class*="summary" i],
+:root[data-theme="dark"] :where(div, section, article, aside, form)[class*="box" i] {
+  border-color: var(--c-border);
+}
+
+:root[data-theme="dark"] :where(table, thead, tbody, tr, th, td) {
+  border-color: var(--c-border);
+}
+
+:root[data-theme="dark"] :where(input, select, textarea) {
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] :where(input, select, textarea):focus {
+  border-color: var(--c-primary);
+  outline-color: rgba(88, 190, 208, .28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  #root {
+    transition: none;
   }
 }

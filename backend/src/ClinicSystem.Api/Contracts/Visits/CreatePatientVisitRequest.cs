@@ -13,6 +13,8 @@ public sealed class CreateVisitTreatmentRequest
 
     [MaxLength(1500)]
     public string? Notes { get; set; }
+
+    public bool CompletesTreatmentCase { get; set; } = true;
 }
 
 public sealed class CreatePatientVisitRequest
@@ -48,4 +50,8 @@ public sealed class CreatePatientVisitRequest
 
     [MaxLength(500)]
     public string? InitialPaymentNotes { get; set; }
+
+    // Enables deliberate back-entry of archived paper records from previous
+    // accounting periods without reopening each historical month.
+    public bool IsHistoricalEntry { get; set; }
 }

@@ -14,6 +14,7 @@ import {
 import {
   AppIcon,
 } from "../../../components/icons/AppIcon";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import {
   useLanguage,
 } from "../../../i18n/LanguageContext";
@@ -102,6 +103,7 @@ export function VisitCreatePage() {
   const [serviceId, setServiceId] = useState("");
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
   const [treatmentNotes, setTreatmentNotes] = useState("");
+  const [requiresMoreSessions, setRequiresMoreSessions] = useState(false);
 
   const consultationService = useMemo(
     () => (servicesQuery.data ?? []).find(isConsultationService) ?? null,
@@ -170,6 +172,15 @@ export function VisitCreatePage() {
     [treatments, consultationService, examinationFindings],
   );
 
+  const selectedTreatmentTotal = normalizedTreatments.reduce(
+    (sum, item) => sum + item.unitPrice,
+    0,
+  );
+
+  const selectedDoctorLabel = doctors.find(
+    doctor => doctor.doctorId === doctorId,
+  )?.fullName ?? (ar ? "اختر الطبيب" : "Select doctor");
+
   function buildDraft(nextTreatments = normalizedTreatments): VisitDraft | null {
     if (!patientId || !doctorId) return null;
 
@@ -213,6 +224,7 @@ export function VisitCreatePage() {
                 ? consultationService.nameAr
                 : consultationService.nameEn || consultationService.nameAr,
             unitPrice: consultationService.currentPrice,
+            completesTreatmentCase: true,
           },
           ...treatments,
         ];
@@ -236,6 +248,7 @@ export function VisitCreatePage() {
             ? selectedService.nameAr
             : selectedService.nameEn || selectedService.nameAr,
         unitPrice: selectedService.currentPrice,
+        completesTreatmentCase: !requiresMoreSessions,
       },
     ];
 
@@ -243,6 +256,7 @@ export function VisitCreatePage() {
     setServiceId("");
     setSelectedTeeth([]);
     setTreatmentNotes("");
+    setRequiresMoreSessions(false);
     persist(next);
   }
 
@@ -284,38 +298,64 @@ export function VisitCreatePage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>Clinical Visit • Step 01</p>
-          <h1>{t("newVisit")}</h1>
-          <p>
-            {patientQuery.data.fullName}
-            {" • "}
-            {patientQuery.data.patientCode}
-          </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          {normalizedTreatments.length > 0 && (
-            <button
-              type="button"
-              className={styles.draftButton}
-              onClick={continueToBilling}
+      <ClinicPageHeader
+        eyebrow="Clinical Visit • Step 01"
+        title={t("newVisit")}
+        subtitle={`${patientQuery.data.fullName} • ${patientQuery.data.patientCode}`}
+        icon="tooth"
+        badge={selectedDoctorLabel}
+        actions={
+          <>
+            {normalizedTreatments.length > 0 && (
+              <button
+                type="button"
+                className={styles.draftButton}
+                onClick={continueToBilling}
+              >
+                {ar
+                  ? `الحساب والمتابعة (${normalizedTreatments.length})`
+                  : `Billing & follow-up (${normalizedTreatments.length})`}
+              </button>
+            )}
+            <Link
+              className={styles.back}
+              to={`/patients/${patientId}`}
             >
-              {ar
-                ? `الحساب والمتابعة (${normalizedTreatments.length})`
-                : `Billing & follow-up (${normalizedTreatments.length})`}
-            </button>
-          )}
-
-          <Link
-            className={styles.back}
-            to={`/patients/${patientId}`}
-          >
-            {t("cancel")}
-          </Link>
-        </div>
-      </header>
+              {t("cancel")}
+            </Link>
+          </>
+        }
+        metrics={[
+          {
+            label: ar ? "بنود الزيارة" : "Visit items",
+            value: normalizedTreatments.length,
+            icon: "services",
+            tone: "primary",
+          },
+          {
+            label: ar ? "قيمة البنود" : "Items value",
+            value: `${selectedTreatmentTotal.toLocaleString()} EGP`,
+            icon: "debt",
+            tone: "neutral",
+          },
+          {
+            label: ar ? "الكشف" : "Consultation",
+            value: consultationTreatment
+              ? (ar ? "مضاف" : "Added")
+              : (ar ? "غير مضاف" : "Not added"),
+            icon: "tooth",
+            tone: consultationTreatment ? "success" : "neutral",
+          },
+          {
+            label: ar ? "الديبوزيت" : "Deposit",
+            value: hasDeposit && Number(depositAmount || 0) > 0
+              ? `${Number(depositAmount).toLocaleString()} EGP`
+              : (ar ? "لا يوجد" : "None"),
+            icon: "reports",
+            tone: hasDeposit && Number(depositAmount || 0) > 0 ? "warning" : "neutral",
+          },
+        ]}
+      />
 
       <section className={styles.card}>
         <div className={styles.sectionTitle}>
@@ -503,6 +543,7 @@ export function VisitCreatePage() {
                   setServiceId("");
                   setSelectedTeeth([]);
                   setTreatmentNotes("");
+                  setRequiresMoreSessions(false);
                 }}
               >
                 <strong>{category}</strong>
@@ -527,6 +568,7 @@ export function VisitCreatePage() {
                     setServiceId(service.id);
                     setSelectedTeeth([]);
                     setTreatmentNotes("");
+                    setRequiresMoreSessions(false);
                   }}
                 >
                   <div>
@@ -570,6 +612,24 @@ export function VisitCreatePage() {
               />
             </label>
 
+            <label className={styles.sessionToggle}>
+              <input
+                type="checkbox"
+                checked={requiresMoreSessions}
+                onChange={event => setRequiresMoreSessions(event.target.checked)}
+              />
+              <span>
+                <strong>
+                  {ar ? "العلاج يحتاج جلسات أخرى" : "Treatment needs more sessions"}
+                </strong>
+                <small>
+                  {ar
+                    ? "مثال: حشو العصب. الجلسات التالية ستُربط بنفس العلاج بدون احتساب سعر العلاج بالكامل مرة أخرى."
+                    : "Example: root canal. Later sessions stay linked to the same case without charging the full treatment again."}
+                </small>
+              </span>
+            </label>
+
             <button
               type="button"
               className={styles.addTreatment}
@@ -611,6 +671,11 @@ export function VisitCreatePage() {
                       : ar ? "بدون سن محدد" : "No specific tooth"}
                   </span>
                   {item.notes && <small>{item.notes}</small>}
+                  {item.completesTreatmentCase === false && (
+                    <span className={styles.sessionBadge}>
+                      {ar ? "متعدد الجلسات • يحتاج متابعة علاج" : "Multi-session • follow-up needed"}
+                    </span>
+                  )}
                 </div>
                 <b>{item.unitPrice.toLocaleString()} EGP</b>
                 <button

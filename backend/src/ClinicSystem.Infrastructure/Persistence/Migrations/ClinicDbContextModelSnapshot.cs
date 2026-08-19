@@ -583,12 +583,21 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ExpenseDateUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("LabOrderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("PaidAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PaidByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
@@ -608,6 +617,8 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.HasIndex("VisitId");
 
                     b.HasIndex("DoctorId", "ExpenseDateUtc");
+
+                    b.HasIndex("DoctorId", "IsPaid", "PaidAtUtc");
 
                     b.HasIndex("PatientId", "ExpenseDateUtc");
 
@@ -1049,11 +1060,24 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("FollowUpCompletedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsVoided")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("VisitDateUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("VoidedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VoidedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("VoidReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.HasKey("Id");
 
@@ -1062,6 +1086,8 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.HasIndex("DoctorId", "VisitDateUtc");
 
                     b.HasIndex("FollowUpAtUtc", "FollowUpCompletedAtUtc");
+
+                    b.HasIndex("IsVoided", "DoctorId", "VisitDateUtc");
 
                     b.HasIndex("PatientId", "VisitDateUtc");
 
@@ -1233,6 +1259,9 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("CompletesTreatmentCase")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("DentalServiceId")
                         .HasColumnType("uuid");
 
@@ -1241,6 +1270,9 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1500)");
 
                     b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SessionNumber")
                         .HasColumnType("integer");
 
                     b.Property<string>("ServiceNameArSnapshot")
@@ -1252,6 +1284,9 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
+                    b.Property<Guid>("TreatmentCaseId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("UnitPriceSnapshot")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -1262,6 +1297,9 @@ namespace ClinicSystem.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DentalServiceId");
+
+                    b.HasIndex("TreatmentCaseId", "SessionNumber")
+                        .IsUnique();
 
                     b.HasIndex("VisitId");
 

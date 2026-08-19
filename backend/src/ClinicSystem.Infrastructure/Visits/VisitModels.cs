@@ -4,7 +4,8 @@ public sealed record CreateVisitTreatmentCommand(
     Guid DentalServiceId,
     int Quantity,
     IReadOnlyCollection<int> ToothNumbers,
-    string? Notes
+    string? Notes,
+    bool CompletesTreatmentCase
 );
 
 public sealed record CreateVisitCommand(
@@ -20,7 +21,37 @@ public sealed record CreateVisitCommand(
     IReadOnlyCollection<CreateVisitTreatmentCommand> Treatments,
     decimal InitialPayment,
     string? PaymentMethod,
-    string? InitialPaymentNotes
+    string? InitialPaymentNotes,
+    bool IsHistoricalEntry
+);
+
+public sealed record UpdateVisitTreatmentCommand(
+    Guid? TreatmentItemId,
+    Guid DentalServiceId,
+    int Quantity,
+    IReadOnlyCollection<int> ToothNumbers,
+    string? Notes,
+    bool CompletesTreatmentCase
+);
+
+public sealed record UpdateVisitCommand(
+    DateTime VisitDateUtc,
+    string? ClinicalNotes,
+    decimal DiscountAmount,
+    decimal ExtraAmount,
+    string? ExtraReason,
+    DateTime? FollowUpAtUtc,
+    IReadOnlyCollection<UpdateVisitTreatmentCommand> Treatments,
+    bool IsHistoricalEntry
+);
+
+public sealed record CreateTreatmentSessionCommand(
+    DateTime VisitDateUtc,
+    string? SessionNotes,
+    string? ClinicalNotes,
+    DateTime? FollowUpAtUtc,
+    bool CompletesTreatmentCase,
+    bool IsHistoricalEntry
 );
 
 public sealed record VisitTreatmentDto(
@@ -32,7 +63,13 @@ public sealed record VisitTreatmentDto(
     int Quantity,
     IReadOnlyCollection<int> ToothNumbers,
     string? Notes,
-    decimal LineTotal
+    decimal LineTotal,
+    Guid TreatmentCaseId,
+    int SessionNumber,
+    int CaseSessionCount,
+    bool IsLatestSession,
+    bool CaseCompleted,
+    bool CompletesTreatmentCase
 );
 
 public sealed record PaymentDto(

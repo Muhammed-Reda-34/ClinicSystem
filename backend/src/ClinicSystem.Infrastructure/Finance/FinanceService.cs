@@ -727,7 +727,8 @@ public sealed class FinanceService
             .AsNoTracking()
             .Where(
                 visit =>
-                    visit.VisitDateUtc >= fromUtc
+                    !visit.IsVoided
+                    && visit.VisitDateUtc >= fromUtc
                     && visit.VisitDateUtc < toUtc);
 
         var paymentQuery =
@@ -735,7 +736,8 @@ public sealed class FinanceService
             .AsNoTracking()
             .Where(
                 payment =>
-                    payment.PaidAtUtc >= fromUtc
+                    !payment.Visit.IsVoided
+                    && payment.PaidAtUtc >= fromUtc
                     && payment.PaidAtUtc < toUtc);
 
         var labQuery =
@@ -743,8 +745,10 @@ public sealed class FinanceService
             .AsNoTracking()
             .Where(
                 expense =>
-                    expense.ExpenseDateUtc >= fromUtc
-                    && expense.ExpenseDateUtc < toUtc);
+                    expense.IsPaid
+                    && expense.PaidAtUtc != null
+                    && expense.PaidAtUtc >= fromUtc
+                    && expense.PaidAtUtc < toUtc);
 
         if (!isClinicWide)
         {
@@ -926,11 +930,13 @@ public sealed class FinanceService
         var visitQuery =
             _db.PatientVisits
             .AsNoTracking()
+            .Where(x => !x.IsVoided)
             .AsQueryable();
 
         var labExpenseQuery =
             _db.LabExpenses
             .AsNoTracking()
+            .Where(x => x.IsPaid && x.PaidAtUtc != null)
             .AsQueryable();
 
         if (!isClinicWideFinancials)
@@ -1042,8 +1048,8 @@ public sealed class FinanceService
             await labExpenseQuery
             .Where(
                 x =>
-                    x.ExpenseDateUtc >= todayStartUtc
-                    && x.ExpenseDateUtc < tomorrowStartUtc)
+                    x.PaidAtUtc >= todayStartUtc
+                    && x.PaidAtUtc < tomorrowStartUtc)
             .SumAsync(
                 x => (decimal?)x.Amount,
                 cancellationToken)

@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { useAuth } from "../../auth/AuthContext";
 import { useLanguage } from "../../../i18n/LanguageContext";
+import { ClinicPageHeader } from "../../../components/ui/ClinicPageHeader";
 import {
   addSalaryAdjustment,
   closePeriod,
@@ -19,6 +20,7 @@ import {
   setSalaryRate,
 } from "../api/financeApi";
 import styles from "./ReportsPage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 function money(value: number) {
   return new Intl.NumberFormat("ar-EG", {
@@ -217,40 +219,69 @@ export function ReportsPage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>Finance</p>
-          <h1>{ar ? "الحسابات والتقارير" : "Finance & Reports"}</h1>
-          <p>
-            {ar
-              ? "كل شهر مستقل، والطبيب يرى بياناته المالية حسب نطاقه."
-              : "Monthly accounting with doctor-scoped financial visibility."}
-          </p>
-        </div>
-
-        <div className={styles.monthPicker}>
-          <input
-            type="number"
-            min="2020"
-            max="2200"
-            value={year}
-            onChange={e => setYear(Number(e.target.value))}
-          />
-          <select
-            value={month}
-            onChange={e => setMonth(Number(e.target.value))}
-          >
-            {Array.from({ length: 12 }, (_, index) => index + 1).map(value => (
-              <option key={value} value={value}>
-                {new Intl.DateTimeFormat(
-                  ar ? "ar-EG" : "en-US",
-                  { month: "long" },
-                ).format(new Date(2026, value - 1, 1))}
-              </option>
-            ))}
-          </select>
-        </div>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Finance"
+        title={ar ? "الحسابات والتقارير" : "Finance & Reports"}
+        subtitle={
+          ar
+            ? "نظرة سريعة على حركة الشهر، ثم التفاصيل والمصروفات والرواتب في نفس الصفحة."
+            : "A quick monthly pulse followed by full expenses and payroll details."
+        }
+        icon="reports"
+        badge={isClosed ? (ar ? "الشهر مغلق" : "Month closed") : (ar ? "الشهر مفتوح" : "Month open")}
+        actions={
+          <div className={styles.monthPicker}>
+            <input
+              type="number"
+              min="2020"
+              max="2200"
+              value={year}
+              onChange={e => setYear(Number(e.target.value))}
+              aria-label={ar ? "السنة" : "Year"}
+            />
+            <select
+              value={month}
+              onChange={e => setMonth(Number(e.target.value))}
+              aria-label={ar ? "الشهر" : "Month"}
+            >
+              {Array.from({ length: 12 }, (_, index) => index + 1).map(value => (
+                <option key={value} value={value}>
+                  {new Intl.DateTimeFormat(
+                    ar ? "ar-EG" : "en-US",
+                    { month: "long" },
+                  ).format(new Date(2026, value - 1, 1))}
+                </option>
+              ))}
+            </select>
+          </div>
+        }
+        metrics={[
+          {
+            label: ar ? "المحصل" : "Collected",
+            value: report ? `${money(report.collectedRevenue)} EGP` : "—",
+            icon: "debt",
+            tone: "success",
+          },
+          {
+            label: ar ? "متبقي الشهر" : "Outstanding",
+            value: report ? `${money(report.outstandingFromMonthVisits)} EGP` : "—",
+            icon: "warning",
+            tone: report && report.outstandingFromMonthVisits > 0 ? "warning" : "neutral",
+          },
+          {
+            label: ar ? "مصروفات المعمل" : "Lab expenses",
+            value: report ? `${money(report.labExpenses)} EGP` : "—",
+            icon: "lab",
+            tone: "neutral",
+          },
+          {
+            label: ar ? "صافي الحركة" : "Net movement",
+            value: report ? `${money(report.netCashMovement)} EGP` : "—",
+            icon: "reports",
+            tone: report && report.netCashMovement >= 0 ? "primary" : "danger",
+          },
+        ]}
+      />
 
       {reportQuery.isLoading ? (
         <div className={styles.state}>
@@ -272,7 +303,7 @@ export function ReportsPage() {
               <strong>{money(report.outstandingFromMonthVisits)} EGP</strong>
             </article>
             <article>
-              <span>{ar ? "مصروفات المعمل" : "Lab expenses"}</span>
+              <span>{ar ? "مصروفات المعمل المدفوعة" : "Paid lab expenses"}</span>
               <strong>{money(report.labExpenses)} EGP</strong>
             </article>
             {report.isClinicWide && (
@@ -436,13 +467,12 @@ export function ReportsPage() {
 
               <label>
                 <span>{ar ? "ساري من" : "Effective from"}</span>
-                <input
-                  type="date"
+                <SimpleDateInput
                   value={salaryRate.effectiveFrom}
-                  onChange={e =>
+                  onChange={value =>
                     setSalaryRateForm({
                       ...salaryRate,
-                      effectiveFrom: e.target.value,
+                      effectiveFrom: value,
                     })
                   }
                 />

@@ -20,6 +20,10 @@ import {
   LanguageProvider,
 } from "./i18n/LanguageContext";
 import {
+  ThemeProvider,
+  initializeTheme,
+} from "./features/theme/ThemeContext";
+import {
   queryClient,
 } from "./app/queryClient";
 import {
@@ -30,6 +34,8 @@ import "./styles/tokens.css";
 import "./styles/reset.css";
 import "./styles/global.css";
 
+initializeTheme();
+
 createRoot(
   document.getElementById(
     "root",
@@ -39,15 +45,17 @@ createRoot(
     <QueryClientProvider
       client={queryClient}
     >
-      <LanguageProvider>
-        <AuthProvider>
-          <DoctorProvider>
-            <RouterProvider
-              router={router}
-            />
-          </DoctorProvider>
-        </AuthProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <DoctorProvider>
+              <RouterProvider
+                router={router}
+              />
+            </DoctorProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

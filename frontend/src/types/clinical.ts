@@ -109,6 +109,7 @@ export type CreateVisitTreatment = {
   quantity: number;
   toothNumbers: number[];
   notes?: string | null;
+  completesTreatmentCase?: boolean;
 };
 
 export type CreateVisitPayload = {
@@ -125,6 +126,7 @@ export type CreateVisitPayload = {
   initialPayment: number;
   paymentMethod?: string | null;
   initialPaymentNotes?: string | null;
+  isHistoricalEntry?: boolean;
 };
 
 export type VisitTreatment = {
@@ -137,6 +139,12 @@ export type VisitTreatment = {
   toothNumbers: number[];
   notes: string | null;
   lineTotal: number;
+  treatmentCaseId: string;
+  sessionNumber: number;
+  caseSessionCount: number;
+  isLatestSession: boolean;
+  caseCompleted: boolean;
+  completesTreatmentCase: boolean;
 };
 
 export type VisitPayment = {
@@ -167,6 +175,35 @@ export type PatientVisit = {
   followUpCompletedAtUtc: string | null;
   treatments: VisitTreatment[];
   payments: VisitPayment[];
+};
+
+export type UpdateVisitTreatment = {
+  treatmentItemId?: string | null;
+  dentalServiceId: string;
+  quantity: number;
+  toothNumbers: number[];
+  notes?: string | null;
+  completesTreatmentCase: boolean;
+};
+
+export type UpdateVisitPayload = {
+  visitDateUtc: string;
+  clinicalNotes?: string | null;
+  discountAmount: number;
+  extraAmount: number;
+  extraReason?: string | null;
+  followUpAtUtc?: string | null;
+  treatments: UpdateVisitTreatment[];
+  isHistoricalEntry?: boolean;
+};
+
+export type CreateTreatmentSessionPayload = {
+  visitDateUtc: string;
+  sessionNotes?: string | null;
+  clinicalNotes?: string | null;
+  followUpAtUtc?: string | null;
+  completesTreatmentCase: boolean;
+  isHistoricalEntry?: boolean;
 };
 
 export type FollowUpVisit = {

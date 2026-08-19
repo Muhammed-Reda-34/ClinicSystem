@@ -213,6 +213,7 @@ public sealed class PatientFilesController : ControllerBase
             CancellationToken cancellationToken)
     {
         Guid? requestedDoctorId = null;
+        var roles = User.GetRoles();
 
         if (
             Request.Headers.TryGetValue(
@@ -226,9 +227,16 @@ public sealed class PatientFilesController : ControllerBase
             requestedDoctorId = parsed;
         }
 
+        // Owner account always resolves the full clinic doctor scope for patient history.
+        // Doctors and staff remain isolated to their allowed scope.
+        if (roles.Contains("Owner"))
+        {
+            requestedDoctorId = null;
+        }
+
         return await _doctorScope.ResolveDoctorIdsAsync(
             User.GetUserIdOrThrow(),
-            User.GetRoles(),
+            roles,
             requestedDoctorId,
             cancellationToken);
     }

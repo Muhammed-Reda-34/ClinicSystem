@@ -1,65 +1,50 @@
 .page {
-  width: min(1120px, 100%);
+  width: min(1180px, 100%);
   margin-inline: auto;
   display: grid;
-  gap: 18px;
-}
-
-.pageHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 18px;
-}
-
-.eyebrow {
-  margin-bottom: 5px;
-  color: var(--c-accent);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.pageHeader h1 {
-  margin-bottom: 5px;
-  font-size: 30px;
-}
-
-.pageHeader p {
-  margin: 0;
-  color: var(--c-text-muted);
+  gap: 15px;
+  animation: intakePageIn .42s cubic-bezier(.22,1,.36,1) both;
 }
 
 .back {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 9px 14px;
+  color: var(--c-primary-strong);
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 11px;
+  font-weight: 900;
 }
 
 .form {
   display: grid;
-  gap: 17px;
+  gap: 13px;
 }
 
 .card {
-  padding: 22px;
-  background: var(--c-surface);
+  padding: 20px;
+  background: rgba(255,255,255,.96);
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-md);
-  box-shadow:
-    0 6px 22px rgba(25, 64, 77, .035);
+  border-radius: 18px;
+  box-shadow: 0 11px 30px rgba(25,64,77,.04);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.card:hover {
+  border-color: #d0e1e5;
+  box-shadow: 0 13px 34px rgba(25,64,77,.055);
 }
 
 .cardHeader {
   display: flex;
-  gap: 12px;
+  gap: 11px;
   align-items: flex-start;
-  padding-bottom: 15px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid #e8eff1;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e9eff1;
 }
 
 .cardHeader > span {
@@ -68,42 +53,45 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  color: var(--c-primary);
-  background: var(--c-primary-soft);
-  border-radius: 11px;
-  font-size: 11px;
-  font-weight: 800;
+  color: #176b87;
+  background: #eaf6f8;
+  border: 1px solid #d2e8ec;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 900;
 }
 
 .cardHeader h2 {
-  margin-bottom: 4px;
-  font-size: 18px;
+  margin-bottom: 3px;
+  color: #244751;
+  font-size: 17px;
 }
 
 .cardHeader p {
   margin: 0;
   color: var(--c-text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.65;
 }
 
 .grid {
   display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .grid label,
 .stackField {
+  min-width: 0;
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .grid label > span,
 .stackField > span {
-  color: #415d66;
-  font-size: 12px;
-  font-weight: 800;
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .grid input,
@@ -111,15 +99,30 @@
 .stackField textarea {
   width: 100%;
   min-height: 44px;
-  padding: 10px 12px;
+  padding: 10px 11px;
   color: var(--c-text);
-  background: #fff;
-  border: 1px solid #cddce1;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
+  outline: 0;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.grid input:focus,
+.grid select:focus,
+.stackField textarea:focus {
+  background: var(--c-surface);
+  border-color: #7bb7c2;
+  box-shadow: 0 0 0 4px rgba(37,135,150,.085);
 }
 
 .stackField {
-  margin-top: 14px;
+  margin-top: 12px;
+}
+
+.stackField textarea {
+  min-height: 104px;
+  line-height: 1.7;
 }
 
 .fullWidth {
@@ -130,16 +133,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
-  padding: 13px 14px;
+  gap: 12px;
+  padding: 12px 13px;
   background: var(--c-surface-soft);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border: 1px solid #e1eaed;
+  border-radius: 13px;
+}
+
+.binaryQuestion > span,
+.binaryQuestion > strong {
+  color: #3d5962;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .segmented {
   display: inline-flex;
-  gap: 7px;
+  gap: 6px;
 }
 
 .segmented label {
@@ -153,61 +163,85 @@
 }
 
 .segmented span {
-  min-width: 74px;
-  min-height: 36px;
+  min-width: 72px;
+  min-height: 38px;
   display: grid;
   place-items: center;
-  padding: 7px 11px;
-  color: var(--c-text-muted);
-  background: #fff;
-  border: 1px solid var(--c-border);
-  border-radius: 9px;
+  padding: 7px 10px;
+  color: #647b82;
+  background: var(--c-surface);
+  border: 1px solid #d8e4e7;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
+  transition: transform .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.segmented span:hover {
+  transform: translateY(-1px);
+  border-color: #bcd6db;
 }
 
 .segmented input:checked + span {
   color: var(--c-primary-strong);
   background: var(--c-primary-soft);
   border-color: #a9d5de;
+  box-shadow: 0 0 0 3px rgba(44,142,154,.06);
 }
 
 .subheading {
-  margin: 20px 0 10px;
-  font-size: 14px;
+  margin: 18px 0 9px;
+  color: #2d5059;
+  font-size: 13px;
 }
 
 .conditions {
   display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
 }
 
 .condition {
-  min-height: 43px;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 11px;
-  background: #fbfdfe;
-  border: 1px solid var(--c-border);
+  gap: 8px;
+  padding: 9px 10px;
+  color: #435f67;
+  background: var(--c-surface-soft);
+  border: 1px solid #e0eaed;
   border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
+  transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+
+.condition:hover {
+  transform: translateY(-1px);
+  background: #f5fbfb;
+  border-color: #cde1e4;
 }
 
 .condition input {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
   accent-color: var(--c-primary);
 }
 
 .actions {
+  position: sticky;
+  bottom: 8px;
+  z-index: 5;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
+  padding: 9px;
+  background: rgba(245,248,250,.9);
+  border: 1px solid rgba(210,225,230,.9);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
 }
 
 .actions button,
@@ -216,15 +250,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 18px;
+  padding: 10px 17px;
   border-radius: 11px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .actions button {
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border: 0;
+  box-shadow: 0 8px 20px rgba(23,107,135,.15);
 }
 
 .cancel {
@@ -233,7 +268,7 @@
 }
 
 .error {
-  padding: 13px 15px;
+  padding: 12px 14px;
   color: var(--c-danger);
   background: var(--c-danger-soft);
   border: 1px solid #efcaca;
@@ -241,16 +276,30 @@
 }
 
 .state {
-  min-height: 360px;
+  min-height: 320px;
   display: grid;
   place-items: center;
   color: var(--c-text-muted);
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-md);
+  border-radius: 17px;
 }
 
-@media (max-width: 700px) {
+@keyframes intakePageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 11px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
   .grid,
   .conditions {
     grid-template-columns: 1fr;
@@ -260,9 +309,58 @@
     grid-column: auto;
   }
 
-  .pageHeader,
   .binaryQuestion {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .segmented span {
+    width: 100%;
+  }
+
+  .actions {
+    bottom: 6px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 7px;
+  }
+
+  .actions button,
+  .cancel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .card {
+    padding: 12px;
+  }
+
+  .cardHeader {
+    gap: 8px;
+  }
+
+  .cardHeader > span {
+    width: 34px;
+    height: 34px;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .card,
+  .condition,
+  .segmented span {
+    animation: none;
+    transition: none;
   }
 }

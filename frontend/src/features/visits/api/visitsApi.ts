@@ -1,9 +1,11 @@
 import { http } from "../../../lib/http";
 import type {
+  CreateTreatmentSessionPayload,
   CreateVisitPayload,
   DebtVisit,
   FollowUpVisit,
   PatientVisit,
+  UpdateVisitPayload,
 } from "../../../types/clinical";
 
 export async function createPatientVisit(
@@ -31,6 +33,41 @@ export async function getPatientVisits(
   return response.data;
 }
 
+export async function updatePatientVisit(
+  visitId: string,
+  payload: UpdateVisitPayload,
+) {
+  await http.put(
+    `/visits/${visitId}`,
+    payload,
+  );
+}
+
+export async function deletePatientVisit(
+  visitId: string,
+  reason: string,
+) {
+  await http.delete(
+    `/visits/${visitId}`,
+    {
+      data: { reason },
+    },
+  );
+}
+
+export async function createTreatmentSession(
+  treatmentItemId: string,
+  payload: CreateTreatmentSessionPayload,
+) {
+  const response = await http.post<{
+    visitId: string;
+  }>(
+    `/visits/treatments/${treatmentItemId}/sessions`,
+    payload,
+  );
+
+  return response.data;
+}
 
 export async function getFollowUpVisits(
   fromUtc: string,
@@ -74,7 +111,6 @@ export async function addVisitPayment(
     },
   );
 }
-
 
 export async function markFollowUpCompleted(
   visitId: string,

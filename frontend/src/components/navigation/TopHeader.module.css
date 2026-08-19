@@ -2,24 +2,17 @@
   position: sticky;
   top: 0;
   z-index: 60;
-  min-height: 104px;
+  min-height: 78px;
   display: grid;
-  grid-template-columns:
-    minmax(110px, auto)
-    minmax(0, 1fr)
-    minmax(180px, auto);
+  grid-template-columns: minmax(104px, auto) minmax(0, 1fr) minmax(170px, auto);
   align-items: center;
-  gap: 18px;
-  padding: 13px 26px;
-  background:
-    rgba(255,255,255,.96);
-  border-bottom:
-    1px solid var(--c-border);
-  box-shadow:
-    0 4px 18px
-    rgba(20,65,78,.035);
-  backdrop-filter:
-    blur(10px);
+  gap: 14px;
+  padding: 10px 24px;
+  background: var(--c-header-glass);
+  border-bottom: 1px solid var(--c-header-border);
+  box-shadow: 0 6px 22px rgba(20,65,78,.045);
+  backdrop-filter: blur(16px);
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
 .leadingControls {
@@ -35,19 +28,16 @@
   place-items: center;
   gap: 4px;
   padding: 9px;
-  background:
-    var(--c-primary-soft);
-  border:
-    1px solid #cae7ec;
-  border-radius: 10px;
+  background: var(--c-primary-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 11px;
 }
 
 .menuButton span {
   width: 18px;
   height: 2px;
   display: block;
-  background:
-    var(--c-primary-strong);
+  background: var(--c-primary-strong);
   border-radius: 10px;
 }
 
@@ -57,15 +47,18 @@
   align-items: center;
   gap: 6px;
   padding: 7px 10px;
-  color:
-    var(--c-primary-strong);
-  background:
-    var(--c-surface);
-  border:
-    1px solid var(--c-border);
+  color: var(--c-primary-strong);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
   font-weight: 800;
   font-size: 11px;
+  transition: background .16s ease, transform .16s ease;
+}
+
+.backButton:hover {
+  background: var(--c-primary-soft);
+  transform: translateY(-1px);
 }
 
 .backButton > span:first-child {
@@ -79,51 +72,56 @@
 }
 
 .invocation {
-  color:
-    var(--c-primary-strong);
-  font-family:
-    var(--font-arabic-display);
-  font-size:
-    clamp(22px, 2vw, 33px);
+  overflow: hidden;
+  color: var(--c-primary-strong);
+  font-family: var(--font-arabic-display);
+  font-size: clamp(19px, 1.55vw, 26px);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .doctorName {
+  overflow: hidden;
   margin-top: 3px;
-  color: #385b66;
-  font-family:
-    var(--font-arabic-display);
-  font-size:
-    clamp(17px, 1.55vw, 25px);
-  font-weight: 700;
-  line-height: 1.15;
+  color: var(--c-text-muted);
+  font-family: var(--font-ui);
+  font-size: clamp(11px, 1vw, 14px);
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .controls {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 9px;
+  gap: 8px;
+}
+
+:global([data-theme="dark"]) .header {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
 }
 
 .doctorSelector {
+  min-width: 0;
   display: grid;
   gap: 3px;
-  color:
-    var(--c-text-muted);
+  color: var(--c-text-muted);
   font-size: 9px;
 }
 
 .doctorSelector select {
-  min-width: 155px;
+  min-width: 150px;
+  max-width: 230px;
   min-height: 38px;
   padding: 6px 9px;
   color: var(--c-text);
-  background:
-    var(--c-surface);
-  border:
-    1px solid var(--c-border);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 9px;
 }
 
@@ -133,12 +131,9 @@
   align-items: center;
   gap: 6px;
   padding: 7px 10px;
-  color:
-    var(--c-primary-strong);
-  background:
-    var(--c-primary-soft);
-  border:
-    1px solid #cae7ec;
+  color: var(--c-primary-strong);
+  background: var(--c-primary-soft);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
   font-weight: 800;
   font-size: 10px;
@@ -146,9 +141,8 @@
 
 @media (max-width: 1100px) {
   .header {
-    grid-template-columns:
-      auto 1fr auto;
-    padding-inline: 18px;
+    grid-template-columns: auto 1fr auto;
+    padding-inline: 16px;
   }
 
   .backButton > span:last-child {
@@ -158,12 +152,10 @@
 
 @media (max-width: 900px) {
   .header {
-    min-height: auto;
-    grid-template-columns:
-      auto minmax(0,1fr) auto;
-    padding:
-      10px 12px;
-    gap: 8px;
+    min-height: 60px;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    padding: 8px 10px;
+    gap: 7px;
   }
 
   .menuButton {
@@ -171,7 +163,7 @@
   }
 
   .leadingControls {
-    gap: 5px;
+    gap: 4px;
   }
 
   .backButton {
@@ -183,21 +175,35 @@
   }
 
   .invocation {
-    font-size:
-      clamp(18px, 4.8vw, 25px);
+    font-size: clamp(14px, 4.2vw, 18px);
   }
 
   .doctorName {
-    font-size:
-      clamp(14px, 4vw, 19px);
+    margin-top: 2px;
+    font-size: 10px;
   }
 
+  /* Keep doctor context available on phones instead of hiding it. */
   .doctorSelector {
+    display: block;
+  }
+
+  .doctorSelector > span {
     display: none;
   }
 
+  .doctorSelector select {
+    width: min(120px, 30vw);
+    min-width: 0;
+    max-width: none;
+    min-height: 38px;
+    padding-inline: 6px;
+    font-size: 11px !important;
+  }
+
   .languageButton {
-    width: 39px;
+    width: 38px;
+    min-height: 38px;
     justify-content: center;
     padding-inline: 0;
   }
@@ -207,18 +213,44 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 560px) {
   .header {
-    grid-template-columns:
-      auto 1fr auto;
-    padding-inline: 8px;
+    padding-inline: 7px;
+  }
+
+  .identity {
+    text-align: start;
+  }
+
+  :global([dir="rtl"]) .identity {
+    text-align: end;
   }
 
   .invocation {
-    font-size: 17px;
+    display: none;
   }
 
   .doctorName {
-    font-size: 14px;
+    margin: 0;
+    color: var(--c-primary-strong);
+    font-size: 12px;
   }
+
+  .doctorSelector select {
+    width: min(104px, 29vw);
+  }
+}
+
+@media (max-width: 380px) {
+  .backButton {
+    display: none;
+  }
+
+  .doctorSelector select {
+    width: 92px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backButton { transition: none; }
 }

@@ -62,7 +62,8 @@ public sealed record LabOrderDto(
 public sealed record CreateQuickLabExpenseCommand(
     Guid PatientId,
     string? Description,
-    decimal Amount
+    decimal Amount,
+    bool IsPaid
 );
 
 public sealed record CreateLabExpenseCommand(
@@ -73,7 +74,13 @@ public sealed record CreateLabExpenseCommand(
     string ServiceOrItemName,
     decimal Amount,
     DateTime ExpenseDateUtc,
-    string? Notes
+    string? Notes,
+    bool IsPaid
+);
+
+public sealed record SetLabExpensePaymentStatusCommand(
+    Guid ExpenseId,
+    bool IsPaid
 );
 
 public sealed record LabExpenseDto(
@@ -90,6 +97,9 @@ public sealed record LabExpenseDto(
     decimal Amount,
     DateTime ExpenseDateUtc,
     string? Notes,
+    bool IsPaid,
+    DateTime? PaidAtUtc,
+    Guid? PaidByUserId,
     Guid CreatedByUserId,
     DateTime CreatedAtUtc
 );

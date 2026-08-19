@@ -29,6 +29,7 @@ import {
   detectPhone,
 } from "../utils/phoneDetection";
 import styles from "./PatientForm.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 export type PatientFormValues = {
   fullName: string;
@@ -497,20 +498,10 @@ export function PatientForm({
               )}
             </span>
 
-            <input
-              type="date"
-              max={new Date()
-                .toISOString()
-                .slice(0, 10)}
-              value={
-                values.dateOfBirth
-              }
-              onChange={event =>
-                setField(
-                  "dateOfBirth",
-                  event.target.value,
-                )
-              }
+            <SimpleDateInput
+              max={new Date().toISOString().slice(0, 10)}
+              value={values.dateOfBirth}
+              onChange={value => setField("dateOfBirth", value)}
             />
           </label>
 

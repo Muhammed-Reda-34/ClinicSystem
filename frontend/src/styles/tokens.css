@@ -46,3 +46,44 @@
   --radius-md: 16px;
   --radius-lg: 22px;
 }
+
+/* Phase 14 / Batch 7 - explicit user-selected theme */
+:root {
+  color-scheme: light;
+  --c-overlay: rgba(4, 24, 31, .5);
+  --c-header-glass: rgba(255, 255, 255, .94);
+  --c-header-border: rgba(30, 88, 102, .10);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-bg: #091419;
+  --c-surface: #102127;
+  --c-surface-soft: #152930;
+  --c-border: #29434c;
+  --c-text: #eef7f9;
+  --c-text-muted: #9db4bb;
+  --c-primary: #58bed0;
+  --c-primary-strong: #84d7e4;
+  --c-primary-soft: #17363e;
+  --c-accent: #49c6b8;
+  --c-accent-soft: #143a37;
+  --c-danger: #f08c8c;
+  --c-danger-soft: #3a2023;
+  --c-warning: #e7bd69;
+  --c-warning-soft: #382f1d;
+  --c-success: #78c79e;
+  --c-success-soft: #17362a;
+  --c-sidebar: #071b22;
+  --c-sidebar-soft: #0d2a33;
+  --c-sidebar-text: #edf8fa;
+  --c-sidebar-muted: #9bb8c0;
+  --c-overlay: rgba(1, 10, 14, .68);
+  --c-header-glass: rgba(10, 25, 31, .93);
+  --c-header-border: rgba(112, 182, 197, .14);
+
+  --shadow-soft:
+    0 14px 36px
+    rgba(0, 0, 0, .28);
+}

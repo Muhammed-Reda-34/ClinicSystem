@@ -9,7 +9,7 @@
   justify-content: space-between;
   gap: 22px;
   padding: 23px 25px;
-  background: linear-gradient(145deg, #f7fbfc, #eef7f8);
+  background: linear-gradient(145deg, var(--c-surface-soft), #eef7f8);
   border: 1px solid #d5e5e8;
   border-radius: 18px;
 }
@@ -51,7 +51,7 @@
   display: grid;
   gap: 3px;
   padding: 11px 13px;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #dce9eb;
   border-radius: 12px;
 }
@@ -123,7 +123,7 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border-radius: 9px;
   font-size: 10px;
@@ -158,7 +158,7 @@
   min-height: 42px;
   padding: 9px 11px;
   color: var(--c-text);
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #cbdce0;
   border-radius: 10px;
   outline: 0;
@@ -202,7 +202,7 @@
 
 .primary,
 .primarySmall {
-  color: #fff !important;
+  color: var(--c-surface) !important;
   background: var(--c-primary) !important;
   border: 0 !important;
   font-weight: 900 !important;
@@ -238,8 +238,8 @@
   align-items: center;
   gap: 9px !important;
   padding: 9px;
-  background: #f8fafb;
-  border: 1px solid #e6edef;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
   border-radius: 9px;
   cursor: pointer;
 }
@@ -311,7 +311,7 @@
   height: 37px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--c-surface);
   background: linear-gradient(145deg, #177a88, #2f9ba5);
   border-radius: 10px;
   font-weight: 900;
@@ -370,8 +370,8 @@
   display: grid !important;
   gap: 9px !important;
   padding: 11px;
-  background: #f8fafb;
-  border: 1px solid #e1eaec;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
 }
 
@@ -386,7 +386,7 @@
   align-items: center;
   gap: 5px;
   padding: 6px 8px;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #dbe6e8;
   border-radius: 8px;
   font-size: 10px;
@@ -431,4 +431,70 @@
 .page > .formCard {
   width: 100%;
   max-width: 980px;
+}
+
+/* Phase 14 / Batch 5 - owner-only team control polish */
+.ownerRule {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  color: #75551f;
+  background: #fff9eb;
+  border: 1px solid #f0dfb5;
+  border-radius: 12px;
+}
+
+.ownerRule svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.ownerRule > div {
+  display: grid;
+  gap: 2px;
+}
+
+.ownerRule strong {
+  font-size: 11px;
+}
+
+.ownerRule span {
+  color: #826c45;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.formHeader > span svg {
+  width: 16px;
+  height: 16px;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.primary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.formCard {
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.formCard:focus-within {
+  transform: translateY(-2px);
+  border-color: #b9d8dd;
+  box-shadow: 0 14px 34px rgba(25, 64, 77, .07);
+}
+
+/* Batch 5 restores the two owner creation cards. */
+.page > .formCard {
+  width: auto;
+  max-width: none;
 }

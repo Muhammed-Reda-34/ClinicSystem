@@ -17,6 +17,9 @@ import {
 import {
   useLanguage,
 } from "../../i18n/LanguageContext";
+import {
+  ThemeToggle,
+} from "../../features/theme/ThemeToggle";
 import styles from "./TopHeader.module.css";
 
 type Props = {
@@ -175,6 +178,8 @@ export function TopHeader({
             </select>
           </label>
         )}
+
+        <ThemeToggle />
 
         <button
           className={styles.languageButton}

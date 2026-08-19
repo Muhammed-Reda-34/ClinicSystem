@@ -137,7 +137,8 @@ public sealed class LabController : ControllerBase
                 new CreateQuickLabExpenseCommand(
                     request.PatientId,
                     request.Description,
-                    request.Amount),
+                    request.Amount,
+                    request.IsPaid),
                 scope,
                 User.GetUserIdOrThrow(),
                 GetClientIp(),
@@ -175,7 +176,8 @@ public sealed class LabController : ControllerBase
                     request.ServiceOrItemName,
                     request.Amount,
                     request.ExpenseDateUtc,
-                    request.Notes),
+                    request.Notes,
+                    request.IsPaid),
                 scope,
                 User.GetUserIdOrThrow(),
                 GetClientIp(),
@@ -185,6 +187,37 @@ public sealed class LabController : ControllerBase
             ? Created(
                 $"/api/v1/lab/expenses/{result.Id}",
                 new { id = result.Id })
+            : BadRequest(
+                new
+                {
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage
+                });
+    }
+
+    [HttpPatch("expenses/{expenseId:guid}/payment-status")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> SetExpensePaymentStatus(
+        Guid expenseId,
+        SetLabExpensePaymentStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope =
+            await ResolveScopeAsync(
+                cancellationToken);
+
+        var result =
+            await _service.SetExpensePaymentStatusAsync(
+                new SetLabExpensePaymentStatusCommand(
+                    expenseId,
+                    request.IsPaid),
+                scope,
+                User.GetUserIdOrThrow(),
+                GetClientIp(),
+                cancellationToken);
+
+        return result.Succeeded
+            ? Ok(new { id = result.Id, isPaid = request.IsPaid })
             : BadRequest(
                 new
                 {

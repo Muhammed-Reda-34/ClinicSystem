@@ -50,12 +50,12 @@
 }
 
 .back {
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
 }
 
 .draftButton {
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border: 0;
 }
@@ -74,7 +74,7 @@
   gap: 11px;
   padding-bottom: 14px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #e8eff1;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .sectionTitle > span {
@@ -108,7 +108,7 @@
 }
 
 .field > span {
-  color: #415d66;
+  color: var(--c-text-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -120,8 +120,8 @@
   min-height: 43px;
   padding: 9px 11px;
   color: var(--c-text);
-  background: #fff;
-  border: 1px solid #cddce1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
   outline: none;
   transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -154,7 +154,7 @@
   gap: 10px;
   min-height: 92px;
   padding: 12px;
-  background: linear-gradient(145deg, #fbfefe, #f3f9fa);
+  background: linear-gradient(145deg, var(--c-surface-soft), #f3f9fa);
   border: 1px solid #d5e6e9;
   border-radius: 14px;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
@@ -215,7 +215,7 @@
 
 .toggleNo {
   color: var(--c-primary-strong);
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #bfd9de;
 }
 
@@ -227,7 +227,7 @@
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #d5e4e7;
   border-radius: 10px;
 }
@@ -274,7 +274,7 @@
   display: grid;
   gap: 12px;
   padding: 15px;
-  background: #f9fbfc;
+  background: var(--c-surface-soft);
   border: 1px solid var(--c-border);
   border-radius: 13px;
 }
@@ -302,7 +302,7 @@
   gap: 8px;
   padding: 7px 10px;
   color: #466069;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #d6e3e6;
   border-radius: 9px;
   transition: transform .16s ease, border-color .16s ease, background .16s ease;
@@ -350,7 +350,7 @@
   padding: 11px;
   color: var(--c-text);
   text-align: start;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid #dce7e9;
   border-radius: 10px;
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
@@ -403,7 +403,7 @@
   gap: 12px;
   padding: 12px 14px;
   background: var(--c-primary-soft);
-  border: 1px solid #c6e1e6;
+  border: 1px solid var(--c-border);
   border-radius: 10px;
 }
 
@@ -428,7 +428,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border: 0;
   border-radius: 10px;
@@ -461,8 +461,8 @@
   align-items: center;
   gap: 10px;
   padding: 11px;
-  background: #fbfdfe;
-  border: 1px solid #dce8ea;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
   border-radius: 11px;
   animation: reveal .2s ease both;
 }
@@ -515,7 +515,7 @@
   padding: 18px;
   color: var(--c-text-muted);
   background: #fafcfd;
-  border: 1px dashed #cbdde1;
+  border: 1px dashed var(--c-border);
   border-radius: 11px;
   text-align: center;
   font-size: 11px;
@@ -534,7 +534,7 @@
   gap: 8px;
   margin-top: 14px;
   padding: 10px 15px;
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border: 0;
   border-radius: 12px;
@@ -570,7 +570,7 @@
   display: grid;
   place-items: center;
   color: var(--c-text-muted);
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 14px;
 }
@@ -646,5 +646,251 @@
 
   .card {
     padding: 15px;
+  }
+}
+
+.sessionToggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(18, 117, 107, 0.18);
+  border-radius: 16px;
+  background: rgba(18, 117, 107, 0.055);
+  cursor: pointer;
+}
+
+.sessionToggle input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.15rem;
+  accent-color: #11786d;
+}
+
+.sessionToggle span {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.sessionToggle strong {
+  color: var(--text-primary);
+}
+
+.sessionToggle small {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.sessionBadge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(222, 145, 24, 0.12);
+  color: #9a5b00;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+/* Phase 15 - visit planner responsive polish */
+.page {
+  width: min(1220px, 100%);
+  gap: 14px;
+  animation: visitPlannerIn .42s cubic-bezier(.22,1,.36,1) both;
+}
+
+.back,
+.draftButton {
+  min-height: 42px;
+  border-radius: 11px;
+}
+
+.draftButton {
+  box-shadow: 0 9px 22px rgba(23,107,135,.15);
+}
+
+.card {
+  padding: 19px;
+  border-radius: 18px;
+  box-shadow: 0 11px 30px rgba(25,64,77,.045);
+}
+
+.sectionTitle {
+  margin-bottom: 14px;
+}
+
+.field select,
+.field input,
+.field textarea {
+  min-height: 44px;
+  background: var(--c-surface-soft);
+}
+
+.quickVisitGrid {
+  gap: 9px;
+}
+
+.consultationCard,
+.depositCard {
+  min-height: 88px;
+  background: linear-gradient(145deg, var(--c-surface-soft), #f4fafb);
+  border-radius: 15px;
+}
+
+.categories {
+  overflow-x: auto;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.categories::-webkit-scrollbar {
+  display: none;
+}
+
+.categories button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.servicesGrid {
+  gap: 8px;
+}
+
+.servicesGrid button {
+  min-height: 70px;
+  border-radius: 12px;
+}
+
+.treatmentComposer,
+.examinationNotes,
+.depositFields {
+  border-radius: 14px;
+}
+
+.visitPlan {
+  gap: 8px;
+}
+
+.visitPlan article {
+  border-radius: 12px;
+}
+
+.continueButton {
+  position: sticky;
+  bottom: 8px;
+  z-index: 6;
+  min-height: 50px;
+  box-shadow: 0 12px 28px rgba(23,107,135,.2);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes visitPlannerIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 13px;
+    border-radius: 15px;
+  }
+
+  .sectionTitle {
+    gap: 8px;
+  }
+
+  .sectionTitle > span {
+    width: 34px;
+    height: 34px;
+  }
+
+  .quickVisitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .consultationCard,
+  .depositCard {
+    grid-template-columns: 40px minmax(0,1fr) !important;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  .consultationCard > button,
+  .depositCard > button,
+  .depositFields {
+    grid-column: 1 / -1;
+  }
+
+  .consultationCard > button,
+  .depositCard > button {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .quickIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .servicesGrid button {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .treatmentComposer {
+    padding: 11px !important;
+  }
+
+  .depositFields {
+    grid-template-columns: 1fr !important;
+  }
+
+  .visitPlan article {
+    grid-template-columns: minmax(0,1fr) auto !important;
+    gap: 8px;
+  }
+
+  .visitPlan article > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .continueButton {
+    bottom: 6px;
+    width: 100%;
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 430px) {
+  .servicesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionTitle p {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .continueButton,
+  .servicesGrid button,
+  .consultationCard,
+  .depositCard {
+    animation: none;
+    transition: none;
   }
 }

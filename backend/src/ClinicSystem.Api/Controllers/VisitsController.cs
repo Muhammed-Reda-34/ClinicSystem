@@ -155,11 +155,13 @@ public sealed class VisitsController : ControllerBase
                         x.DentalServiceId,
                         x.Quantity,
                         x.ToothNumbers,
-                        x.Notes))
+                        x.Notes,
+                        x.CompletesTreatmentCase))
                     .ToArray(),
                 request.InitialPayment,
                 request.PaymentMethod,
-                request.InitialPaymentNotes),
+                request.InitialPaymentNotes,
+                request.IsHistoricalEntry),
             scope,
             User.GetUserIdOrThrow(),
             HttpContext.Connection.RemoteIpAddress?.ToString(),
@@ -180,6 +182,99 @@ public sealed class VisitsController : ControllerBase
             {
                 visitId = result.VisitId
             });
+    }
+
+    [HttpPut("{visitId:guid}")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> Update(
+        Guid visitId,
+        UpdatePatientVisitRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope = await ResolveScopeAsync(cancellationToken);
+
+        var result = await _visits.UpdateAsync(
+            visitId,
+            new UpdateVisitCommand(
+                request.VisitDateUtc,
+                request.ClinicalNotes,
+                request.DiscountAmount,
+                request.ExtraAmount,
+                request.ExtraReason,
+                request.FollowUpAtUtc,
+                request.Treatments.Select(x =>
+                    new UpdateVisitTreatmentCommand(
+                        x.TreatmentItemId,
+                        x.DentalServiceId,
+                        x.Quantity,
+                        x.ToothNumbers,
+                        x.Notes,
+                        x.CompletesTreatmentCase))
+                    .ToArray(),
+                request.IsHistoricalEntry),
+            scope,
+            User.GetUserIdOrThrow(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        return result.Succeeded
+            ? NoContent()
+            : BadRequest(new { code = result.ErrorCode, message = result.ErrorMessage });
+    }
+
+    [HttpDelete("{visitId:guid}")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> DeleteVisit(
+        Guid visitId,
+        [FromBody] VoidPatientVisitRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope = await ResolveScopeAsync(cancellationToken);
+
+        var result = await _visits.VoidAsync(
+            visitId,
+            request.Reason,
+            scope,
+            User.GetUserIdOrThrow(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        return result.Succeeded
+            ? NoContent()
+            : BadRequest(new { code = result.ErrorCode, message = result.ErrorMessage });
+    }
+
+    [HttpPost("treatments/{treatmentItemId:guid}/sessions")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> CreateTreatmentSession(
+        Guid treatmentItemId,
+        CreateTreatmentSessionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope = await ResolveScopeAsync(cancellationToken);
+
+        var result = await _visits.CreateTreatmentSessionAsync(
+            treatmentItemId,
+            new CreateTreatmentSessionCommand(
+                request.VisitDateUtc,
+                request.SessionNotes,
+                request.ClinicalNotes,
+                request.FollowUpAtUtc,
+                request.CompletesTreatmentCase,
+                request.IsHistoricalEntry),
+            scope,
+            User.GetUserIdOrThrow(),
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { code = result.ErrorCode, message = result.ErrorMessage });
+        }
+
+        return Created(
+            $"/api/v1/visits/{result.VisitId}",
+            new { visitId = result.VisitId });
     }
 
     [HttpPost("{visitId:guid}/payments")]
@@ -217,6 +312,7 @@ public sealed class VisitsController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid? requestedDoctorId = null;
+        var roles = User.GetRoles();
 
         if (
             Request.Headers.TryGetValue("X-Doctor-Id", out var value)
@@ -226,9 +322,16 @@ public sealed class VisitsController : ControllerBase
             requestedDoctorId = parsed;
         }
 
+        // Owner account always resolves the full clinic doctor scope for patient history.
+        // Doctors and staff remain isolated to their allowed scope.
+        if (roles.Contains("Owner"))
+        {
+            requestedDoctorId = null;
+        }
+
         return await _doctorScope.ResolveDoctorIdsAsync(
             User.GetUserIdOrThrow(),
-            User.GetRoles(),
+            roles,
             requestedDoctorId,
             cancellationToken);
     }

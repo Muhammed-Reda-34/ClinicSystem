@@ -1,76 +1,350 @@
-.page { display: grid; gap: 18px; }
-.header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
-.eyebrow {
-  margin-bottom: 6px; color: var(--c-accent); font-size: 11px;
-  font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+.page {
+  display: grid;
+  gap: 14px;
+  animation: reportsPageIn .42s cubic-bezier(.22,1,.36,1) both;
 }
-.header h1 { margin-bottom: 6px; font-size: 30px; }
-.header p { margin: 0; color: var(--c-text-muted); }
-.monthPicker { display: flex; gap: 8px; }
-.monthPicker input, .monthPicker select {
-  min-height: 42px; padding: 8px 10px; color: var(--c-text); background: #fff;
-  border: 1px solid var(--c-border); border-radius: 10px;
+
+.monthPicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid #d5e3e7;
+  border-radius: 12px;
 }
-.monthPicker input { width: 90px; }
+
+.monthPicker input,
+.monthPicker select {
+  min-height: 38px;
+  padding: 7px 9px;
+  color: var(--c-text);
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+  outline: 0;
+}
+
+.monthPicker input:focus,
+.monthPicker select:focus {
+  border-color: #7bb7c2;
+  box-shadow: 0 0 0 3px rgba(37,135,150,.08);
+}
+
+.monthPicker input {
+  width: 88px;
+}
+
 .reportGrid {
-  display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 9px;
 }
+
 .reportGrid article {
-  display: grid; gap: 7px; min-height: 105px; padding: 16px; background: var(--c-surface);
-  border: 1px solid var(--c-border); border-radius: 14px;
+  min-width: 0;
+  min-height: 100px;
+  display: grid;
+  align-content: space-between;
+  gap: 7px;
+  padding: 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(25,64,77,.035);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
-.reportGrid span { color: var(--c-text-muted); font-size: 10px; font-weight: 700; }
-.reportGrid strong { color: var(--c-primary); font-size: 18px; }
-.netCard { background: var(--c-primary-soft) !important; border-color: #c3e0e5 !important; }
-.netCard strong { color: var(--c-primary-strong) !important; font-size: 21px !important; }
+
+.reportGrid article:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border);
+  box-shadow: 0 11px 26px rgba(25,64,77,.05);
+}
+
+.reportGrid span {
+  color: var(--c-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.reportGrid strong {
+  overflow-wrap: anywhere;
+  color: var(--c-primary);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.netCard {
+  background: #eaf7f7 !important;
+  border-color: #c3e0e5 !important;
+}
+
+.netCard strong {
+  color: var(--c-primary-strong) !important;
+  font-size: 20px !important;
+}
+
 .periodCard {
-  display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  padding: 15px 18px; background: var(--c-surface); border: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  box-shadow: 0 7px 20px rgba(25,64,77,.03);
+}
+
+.periodCard > div {
+  display: grid;
+  gap: 3px;
+}
+
+.periodCard span {
+  color: var(--c-text-muted);
+  font-size: 9px;
+}
+
+.periodCard strong {
+  color: #294d57;
+}
+
+.periodCard button {
+  min-height: 40px;
+  padding: 8px 13px;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border: 0;
+  border-radius: 10px;
+  font-weight: 900;
+}
+
+.dangerButton {
+  color: var(--c-danger) !important;
+  background: var(--c-danger-soft) !important;
+}
+
+.formsGrid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 11px;
+}
+
+.tablesGrid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 11px;
+}
+
+.card {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  box-shadow: 0 9px 25px rgba(25,64,77,.035);
+}
+
+.card h2 {
+  margin-bottom: 2px;
+  color: #2c4d56;
+  font-size: 15px;
+}
+
+.card label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.card label span {
+  color: var(--c-text-muted);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.card input,
+.card select,
+.card textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 9px;
+  color: var(--c-text);
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+  outline: 0;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.card input:focus,
+.card select:focus,
+.card textarea:focus {
+  background: var(--c-surface);
+  border-color: #7bb7c2;
+  box-shadow: 0 0 0 3px rgba(37,135,150,.08);
+}
+
+.card button {
+  min-height: 42px;
+  padding: 8px 12px;
+  color: var(--c-surface);
+  background: var(--c-primary);
+  border: 0;
+  border-radius: 10px;
+  font-weight: 900;
+  box-shadow: 0 7px 18px rgba(23,107,135,.12);
+}
+
+.card button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.rows {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.rows article {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 10px;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+
+.rows article > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rows strong,
+.rows small,
+.rows > article > span {
+  overflow-wrap: anywhere;
+}
+
+.rows small {
+  color: var(--c-text-muted);
+  font-size: 9px;
+}
+
+.rows > article > span {
+  flex: 0 0 auto;
+  color: var(--c-primary);
+  font-weight: 900;
+  font-size: 11px;
+}
+
+.state {
+  min-height: 145px;
+  display: grid;
+  place-items: center;
+  color: var(--c-text-muted);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
 }
-.periodCard > div { display: grid; gap: 3px; }
-.periodCard span { color: var(--c-text-muted); font-size: 10px; }
-.periodCard button {
-  min-height: 39px; padding: 8px 13px; color: var(--c-primary);
-  background: var(--c-primary-soft); border: 0; border-radius: 9px; font-weight: 800;
+
+@keyframes reportsPageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.dangerButton { color: var(--c-danger) !important; background: var(--c-danger-soft) !important; }
-.formsGrid {
-  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px;
-}
-.tablesGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
-.card {
-  display: grid; gap: 11px; padding: 19px; background: var(--c-surface);
-  border: 1px solid var(--c-border); border-radius: var(--radius-md);
-}
-.card h2 { margin-bottom: 3px; font-size: 16px; }
-.card label { display: grid; gap: 5px; }
-.card label span { color: #46616a; font-size: 10px; font-weight: 800; }
-.card input, .card select, .card textarea {
-  min-height: 40px; padding: 8px 9px; color: var(--c-text); background: #fff;
-  border: 1px solid #cfdee2; border-radius: 9px;
-}
-.card button {
-  min-height: 40px; padding: 8px 12px; color: #fff; background: var(--c-primary);
-  border: 0; border-radius: 9px; font-weight: 800;
-}
-.card button:disabled { opacity: .5; cursor: not-allowed; }
-.rows { display: grid; gap: 7px; }
-.rows article {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 10px; background: var(--c-surface-soft); border-radius: 9px;
-}
-.rows article > div { display: grid; gap: 2px; }
-.rows small { color: var(--c-text-muted); font-size: 9px; }
-.rows > article > span { color: var(--c-primary); font-weight: 800; font-size: 11px; }
-.state {
-  min-height: 150px; display: grid; place-items: center; color: var(--c-text-muted);
-  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 14px;
-}
+
 @media (max-width: 1100px) {
-  .reportGrid, .formsGrid { grid-template-columns: repeat(2,1fr); }
+  .reportGrid,
+  .formsGrid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
 }
-@media (max-width: 800px) {
-  .header { align-items: stretch; flex-direction: column; }
-  .tablesGrid, .reportGrid, .formsGrid { grid-template-columns: 1fr; }
+
+@media (max-width: 760px) {
+  .page {
+    gap: 10px;
+  }
+
+  .monthPicker {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 110px minmax(0,1fr);
+  }
+
+  .monthPicker input,
+  .monthPicker select {
+    width: 100%;
+  }
+
+  .reportGrid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 7px;
+  }
+
+  .reportGrid article {
+    min-height: 88px;
+    padding: 11px;
+  }
+
+  .reportGrid strong {
+    font-size: 14px;
+  }
+
+  .formsGrid,
+  .tablesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .periodCard {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .periodCard button {
+    width: 100%;
+  }
+
+  .rows article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rows > article > span {
+    align-self: stretch;
+    padding-top: 6px;
+    border-top: 1px solid var(--c-border);
+  }
+}
+
+@media (max-width: 430px) {
+  .reportGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .monthPicker {
+    grid-template-columns: 92px minmax(0,1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .reportGrid article {
+    animation: none;
+    transition: none;
+  }
 }

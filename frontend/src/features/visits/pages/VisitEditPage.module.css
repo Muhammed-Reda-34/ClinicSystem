@@ -1,0 +1,42 @@
+.page { display: grid; gap: 1.2rem; padding-bottom: 3rem; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1.4rem; border-radius: 24px; background: linear-gradient(135deg, rgba(16,120,109,.11), rgba(255,255,255,.92)); border: 1px solid rgba(16,120,109,.15); }
+.header p { margin: 0 0 .35rem; color: #0f766e; font-weight: 800; }
+.header h1 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.35rem); }
+.header span { display: block; margin-top: .45rem; color: var(--text-secondary); }
+.header a { text-decoration: none; padding: .72rem 1rem; border-radius: 12px; background: var(--surface-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700; }
+.form { display: grid; gap: 1.2rem; }
+.card { background: var(--surface-primary); border: 1px solid var(--border-color); border-radius: 22px; padding: 1.25rem; box-shadow: 0 18px 45px rgba(15,23,42,.045); }
+.sectionTitle { display: flex; gap: .9rem; align-items: flex-start; margin-bottom: 1.2rem; }
+.sectionTitle svg { width: 24px; height: 24px; color: #0f766e; flex: 0 0 auto; }
+.sectionTitle h2 { margin: 0 0 .3rem; }
+.sectionTitle p { margin: 0; color: var(--text-secondary); line-height: 1.6; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+.grid label, .fullField { display: grid; gap: .45rem; }
+.grid span, .fullField span { font-weight: 700; }
+.grid input, .fullField input, .fullField textarea, .treatmentCard select, .treatmentCard textarea, .addRow select { width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 12px; background: var(--surface-primary); color: var(--text-primary); padding: .78rem .85rem; font: inherit; }
+.fullField { margin-top: 1rem; }
+.treatmentList { display: grid; gap: 1rem; }
+.treatmentCard { display: grid; gap: .8rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 18px; background: rgba(15,118,110,.025); }
+.treatmentTop { display: grid; grid-template-columns: 1fr auto; gap: .8rem; align-items: center; }
+.treatmentTop strong { white-space: nowrap; color: #0f766e; }
+.treatmentMeta { display: flex; align-items: center; justify-content: space-between; gap: .8rem; color: var(--text-secondary); }
+.treatmentMeta button, .remove, .addRow button { border: 0; border-radius: 11px; cursor: pointer; font: inherit; font-weight: 700; }
+.treatmentMeta button { padding: .55rem .8rem; background: rgba(15,118,110,.1); color: #0f766e; }
+.chartWrap { padding: .6rem; border-radius: 16px; background: var(--surface-primary); border: 1px dashed rgba(15,118,110,.25); }
+.sessionCheck { display: flex; align-items: center; gap: .6rem; font-weight: 700; }
+.sessionCheck input { width: 1.1rem; height: 1.1rem; accent-color: #0f766e; }
+.remove { justify-self: start; padding: .58rem .8rem; background: rgba(185,28,28,.08); color: #b91c1c; }
+.addRow { display: grid; grid-template-columns: 1fr auto; gap: .7rem; margin-top: 1rem; }
+.addRow button { display: inline-flex; align-items: center; gap: .45rem; padding: .7rem 1rem; background: #0f766e; color: white; }
+.addRow button:disabled { opacity: .45; cursor: default; }
+.addRow svg { width: 18px; height: 18px; }
+.summary { position: sticky; bottom: 1rem; z-index: 5; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; padding: 1rem 1.15rem; border: 1px solid rgba(15,118,110,.2); background: color-mix(in srgb, var(--surface-primary) 94%, transparent); backdrop-filter: blur(15px); border-radius: 18px; box-shadow: 0 16px 45px rgba(15,23,42,.12); }
+.summary div { display: grid; gap: .2rem; }
+.summary strong { font-size: 1.25rem; }
+.summary small { color: var(--text-secondary); }
+.summary button { display: inline-flex; align-items: center; gap: .5rem; border: 0; border-radius: 12px; padding: .78rem 1.05rem; background: #0f766e; color: white; font: inherit; font-weight: 800; cursor: pointer; }
+.summary button:disabled { opacity: .6; }
+.summary svg { width: 18px; height: 18px; }
+.error { grid-column: 1 / -1; margin: 0; color: #b91c1c; font-weight: 700; }
+.state { padding: 2rem; text-align: center; color: var(--text-secondary); }
+@media (max-width: 760px) { .header, .treatmentMeta { align-items: stretch; flex-direction: column; } .grid, .summary, .treatmentTop, .addRow { grid-template-columns: 1fr; } .summary { position: static; } }

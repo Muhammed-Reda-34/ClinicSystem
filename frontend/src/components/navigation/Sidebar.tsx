@@ -114,7 +114,7 @@ const items: NavItem[] = [
     to: "/users",
     label: "users",
     icon: "users",
-    roles: ["Owner", "Doctor"],
+    roles: ["Owner"],
   },
   {
     to: "/reports",

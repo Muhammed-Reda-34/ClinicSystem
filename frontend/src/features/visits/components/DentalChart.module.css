@@ -29,7 +29,7 @@
   display: inline-flex;
   gap: 5px;
   padding: 4px;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 10px;
 }
@@ -80,8 +80,8 @@
     linear-gradient(
       90deg,
       transparent,
-      #a7bbc1 12%,
-      #a7bbc1 88%,
+      var(--c-text-muted) 12%,
+      var(--c-text-muted) 88%,
       transparent
     );
 }
@@ -89,9 +89,9 @@
 .toothButton {
   min-width: 44px;
   padding: 4px 2px 7px;
-  color: #4d6870;
-  background: #fff;
-  border: 1px solid #d4e1e5;
+  color: var(--c-text-muted);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 9px;
 }
 
@@ -109,8 +109,8 @@
 }
 
 .glyph {
-  fill: #fff;
-  stroke: #49636c;
+  fill: var(--c-surface);
+  stroke: var(--c-text-muted);
   stroke-width: 1.6;
 }
 
@@ -150,8 +150,8 @@
 }
 
 .archShape {
-  fill: #fff;
-  stroke: #49636c;
+  fill: var(--c-surface);
+  stroke: var(--c-text-muted);
   stroke-width: 1.5;
 }
 
@@ -162,7 +162,7 @@
 }
 
 .archLabel {
-  fill: #415d66;
+  fill: var(--c-text-muted);
   font-size: 9px;
   font-weight: 800;
   pointer-events: none;
@@ -179,7 +179,7 @@
   margin-top: 12px;
   padding: 10px 12px;
   color: #48626b;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 9px;
   font-size: 11px;
@@ -192,5 +192,75 @@
 @media (max-width: 760px) {
   .header {
     flex-direction: column;
+  }
+}
+
+/* Phase 15 - phone-first odontogram */
+@media (max-width: 760px) {
+  .chart {
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  .header {
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+
+  .modeSwitch {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modeSwitch button {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .rows,
+  .archWrap {
+    overflow-x: visible;
+  }
+
+  .toothRow {
+    min-width: 0;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .rowLabel,
+  .midline {
+    min-width: 0;
+  }
+
+  .toothButton {
+    min-width: 0;
+    min-height: 54px;
+    padding: 4px 1px 5px;
+  }
+
+  .toothButton span {
+    font-size: 8px;
+  }
+
+  .toothButton svg {
+    width: 23px;
+    height: 29px;
+  }
+
+  .archSvg {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .toothRow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .toothButton {
+    min-height: 50px;
   }
 }

@@ -16,6 +16,9 @@ import {
 import {
   useLanguage,
 } from "../../../i18n/LanguageContext";
+import {
+  ClinicPageHeader,
+} from "../../../components/ui/ClinicPageHeader";
 import type {
   MedicalIntake,
   UpdateMedicalIntakePayload,
@@ -25,6 +28,7 @@ import {
   updateMedicalIntake,
 } from "../api/medicalApi";
 import styles from "./MedicalIntakePage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 type FormState =
   UpdateMedicalIntakePayload;
@@ -124,7 +128,7 @@ export function MedicalIntakePage() {
           ]);
 
           navigate(
-            "/patients",
+            `/patients/${patientId}`,
           );
         },
     });
@@ -243,32 +247,59 @@ export function MedicalIntakePage() {
     },
   ];
 
+
+  const activeConditionCount = conditions.filter(
+    condition => Boolean(form[condition.key]),
+  ).length;
+
   return (
     <section className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>
-            Medical Intake
-          </p>
-
-          <h1>
-            {t(
-              "medicalIntake",
-            )}
-          </h1>
-
-          <p>
-            {query.data?.fullName}
-          </p>
-        </div>
-
-        <Link
-          className={styles.back}
-          to={`/patients/${patientId}`}
-        >
-          {t("cancel")}
-        </Link>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Medical Intake"
+        title={t("medicalIntake")}
+        subtitle={query.data?.fullName}
+        icon="patients"
+        actions={
+          <Link
+            className={styles.back}
+            to={`/patients/${patientId}`}
+          >
+            {t("cancel")}
+          </Link>
+        }
+        metrics={[
+          {
+            label: language === "ar" ? "حالات صحية محددة" : "Health flags",
+            value: activeConditionCount,
+            icon: "warning",
+            tone: activeConditionCount > 0 ? "warning" : "success",
+          },
+          {
+            label: language === "ar" ? "حساسية أدوية" : "Drug allergy",
+            value: form.hasDrugAllergy
+              ? (language === "ar" ? "نعم" : "Yes")
+              : (language === "ar" ? "لا" : "No"),
+            icon: "services",
+            tone: form.hasDrugAllergy ? "danger" : "success",
+          },
+          {
+            label: language === "ar" ? "دخول مستشفى مؤخرًا" : "Recent hospital stay",
+            value: form.hadRecentHospitalization
+              ? (language === "ar" ? "نعم" : "Yes")
+              : (language === "ar" ? "لا" : "No"),
+            icon: "followUp",
+            tone: form.hadRecentHospitalization ? "warning" : "neutral",
+          },
+          {
+            label: language === "ar" ? "آخر تحديث" : "Last update",
+            value: query.data?.updatedAtUtc
+              ? new Date(query.data.updatedAtUtc).toLocaleDateString(language === "ar" ? "ar-EG" : "en-GB")
+              : (language === "ar" ? "جديد" : "New"),
+            icon: "calendar",
+            tone: "neutral",
+          },
+        ]}
+      />
 
       <form
         className={styles.form}
@@ -313,22 +344,10 @@ export function MedicalIntakePage() {
               <span>
                 {t("dateOfBirth")}
               </span>
-              <input
-                type="date"
-                max={new Date()
-                  .toISOString()
-                  .slice(0, 10)}
-                value={
-                  form.dateOfBirth
-                  ?? ""
-                }
-                onChange={event =>
-                  setField(
-                    "dateOfBirth",
-                    event.target.value
-                    || null,
-                  )
-                }
+              <SimpleDateInput
+                max={new Date().toISOString().slice(0, 10)}
+                value={form.dateOfBirth ?? ""}
+                onChange={value => setField("dateOfBirth", value || null)}
               />
             </label>
 
@@ -745,21 +764,9 @@ export function MedicalIntakePage() {
               <span>
                 {t("formDate")}
               </span>
-              <input
-                type="date"
-                value={
-                  form.formDate
-                  ?? new Date()
-                    .toISOString()
-                    .slice(0, 10)
-                }
-                onChange={event =>
-                  setField(
-                    "formDate",
-                    event.target.value
-                    || null,
-                  )
-                }
+              <SimpleDateInput
+                value={form.formDate ?? new Date().toISOString().slice(0, 10)}
+                onChange={value => setField("formDate", value || null)}
               />
             </label>
           </div>

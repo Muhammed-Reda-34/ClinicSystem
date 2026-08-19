@@ -82,6 +82,9 @@ export type LabExpense = {
   amount: number;
   expenseDateUtc: string;
   notes: string | null;
+  isPaid: boolean;
+  paidAtUtc: string | null;
+  paidByUserId: string | null;
   createdByUserId: string;
   createdAtUtc: string;
 };

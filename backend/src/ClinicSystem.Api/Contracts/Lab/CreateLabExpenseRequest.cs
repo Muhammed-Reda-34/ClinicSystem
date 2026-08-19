@@ -19,4 +19,6 @@ public sealed class CreateLabExpenseRequest
 
     [MaxLength(2000)]
     public string? Notes { get; set; }
+
+    public bool IsPaid { get; set; } = true;
 }

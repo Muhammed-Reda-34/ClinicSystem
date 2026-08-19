@@ -13,6 +13,9 @@ import {
   AppIcon,
 } from "../../../components/icons/AppIcon";
 import {
+  ClinicPageHeader,
+} from "../../../components/ui/ClinicPageHeader";
+import {
   useLanguage,
 } from "../../../i18n/LanguageContext";
 import {
@@ -125,36 +128,64 @@ export function PatientsPage() {
       ),
     );
 
+  const visiblePatients =
+    query.data?.items ?? [];
+
+  const blacklistedVisible =
+    visiblePatients.filter(
+      patient => patient.isBlacklisted,
+    ).length;
+
+  const scopeLabel =
+    selectedDoctor?.fullName
+    ?? (language === "ar"
+      ? "كل الأطباء"
+      : "All doctors");
+
   return (
     <section className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>
-            Patient CRM
-          </p>
-
-          <h1>
-            {t("patientsTitle")}
-          </h1>
-
-          <p className={styles.subtitle}>
-            {t(
-              "patientsSubtitle",
-            )}
-          </p>
-        </div>
-
-        <Link
-          to="/patients/new"
-          className={styles.addButton}
-        >
-          <AppIcon
-            name="plus"
-            size={18}
-          />
-          {t("addPatient")}
-        </Link>
-      </header>
+      <ClinicPageHeader
+        eyebrow="Patient CRM"
+        title={t("patientsTitle")}
+        subtitle={t("patientsSubtitle")}
+        icon="patients"
+        badge={scopeLabel}
+        actions={
+          <Link
+            to="/patients/new"
+            className={styles.addButton}
+          >
+            <AppIcon name="plus" size={18} />
+            {t("addPatient")}
+          </Link>
+        }
+        metrics={[
+          {
+            label: language === "ar" ? "إجمالي المرضى" : "Total patients",
+            value: query.data?.totalCount ?? 0,
+            icon: "patients",
+            tone: "primary",
+          },
+          {
+            label: language === "ar" ? "ظاهر في الصفحة" : "Visible now",
+            value: visiblePatients.length,
+            icon: "search",
+            tone: "neutral",
+          },
+          {
+            label: language === "ar" ? "بلاك ليست" : "Blacklisted",
+            value: blacklistedVisible,
+            icon: "warning",
+            tone: blacklistedVisible > 0 ? "danger" : "success",
+          },
+          {
+            label: language === "ar" ? "الصفحة" : "Page",
+            value: `${page} / ${totalPages}`,
+            icon: "reports",
+            tone: "neutral",
+          },
+        ]}
+      />
 
       <div className={styles.toolbar}>
         <label className={styles.searchBox}>
@@ -434,6 +465,81 @@ export function PatientsPage() {
           </div>
         )}
       </div>
+
+      {!query.isLoading && !query.isError && (
+        <div className={styles.mobileList}>
+          {visiblePatients.map(patient => (
+            <article className={styles.mobilePatientCard} key={patient.id}>
+              <div className={styles.mobilePatientTop}>
+                <div className={styles.patientCell}>
+                  <div className={styles.patientAvatar}>
+                    {patient.fullName.trim().charAt(0)}
+                  </div>
+                  <div>
+                    <Link
+                      className={styles.patientName}
+                      to={`/patients/${patient.id}`}
+                    >
+                      {patient.fullName}
+                    </Link>
+                    <small>
+                      {patient.patientCode}
+                      {patient.formNumber ? ` • ${patient.formNumber}` : ""}
+                    </small>
+                  </div>
+                </div>
+
+                <span className={styles.statusTag}>
+                  {t(statusTranslationKey(patient.profileStatus))}
+                </span>
+              </div>
+
+              <div className={styles.mobilePatientMeta}>
+                <a
+                  className={styles.phoneLink}
+                  href={toWhatsAppHref(patient.phoneNumber)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <AppIcon name="external" size={14} />
+                  {patient.phoneNumber}
+                </a>
+
+                <span>
+                  {language === "ar" ? "العمر" : "Age"}: {patient.age ?? "—"}
+                </span>
+
+                <span>
+                  {language === "ar" ? "الأطباء" : "Doctors"}: {patient.doctors.length}
+                </span>
+              </div>
+
+              {patient.isBlacklisted && (
+                <div className={styles.mobileWarning}>
+                  <AppIcon name="warning" size={15} />
+                  {t("blacklisted")}
+                </div>
+              )}
+
+              <div className={styles.mobileActions}>
+                <Link to={`/patients/${patient.id}`}>
+                  {t("open")}
+                </Link>
+                {canEdit && (
+                  <Link to={`/patients/${patient.id}/edit`}>
+                    <AppIcon name="edit" size={15} />
+                    {t("edit")}
+                  </Link>
+                )}
+              </div>
+            </article>
+          ))}
+
+          {visiblePatients.length === 0 && (
+            <div className={styles.empty}>{t("noPatients")}</div>
+          )}
+        </div>
+      )}
 
       <footer className={styles.pagination}>
         <button

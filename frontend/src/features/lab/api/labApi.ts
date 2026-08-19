@@ -35,6 +35,14 @@ export async function createQuickLabExpense(payload: {
   patientId: string;
   description: string | null;
   amount: number;
+  isPaid: boolean;
 }) {
   await http.post("/lab/quick-expenses", payload);
+}
+
+export async function setLabExpensePaymentStatus(
+  expenseId: string,
+  isPaid: boolean,
+) {
+  await http.patch(`/lab/expenses/${expenseId}/payment-status`, { isPaid });
 }

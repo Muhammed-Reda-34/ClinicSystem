@@ -38,7 +38,7 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 13px;
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 10px;
   font-weight: 800;
@@ -62,7 +62,7 @@
   gap: 11px;
   padding-bottom: 14px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #e8eff1;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .sectionTitle > span {
@@ -99,7 +99,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  background: #f9fbfc;
+  background: var(--c-surface-soft);
   border: 1px solid var(--c-border);
   border-radius: 10px;
 }
@@ -134,7 +134,7 @@
   margin-top: 10px;
   color: var(--c-primary-strong);
   background: var(--c-primary-soft);
-  border-color: #c6e1e6;
+  border-color: var(--c-border);
 }
 
 .itemNote {
@@ -190,7 +190,7 @@
 }
 
 .field > span {
-  color: #415d66;
+  color: var(--c-text-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -202,8 +202,8 @@
   min-height: 43px;
   padding: 9px 11px;
   color: var(--c-text);
-  background: #fff;
-  border: 1px solid #cddce1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 10px;
 }
 
@@ -222,7 +222,7 @@
   display: grid;
   gap: 5px;
   padding: 12px;
-  background: #f8fbfc;
+  background: var(--c-surface-soft);
   border: 1px solid var(--c-border);
   border-radius: 10px;
 }
@@ -251,7 +251,7 @@
 .actions button {
   min-height: 44px;
   padding: 10px 18px;
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border: 0;
   border-radius: 10px;
@@ -276,7 +276,7 @@
   display: grid;
   place-items: center;
   color: var(--c-text-muted);
-  background: #fff;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 14px;
 }
@@ -308,7 +308,7 @@
 
 .emptyPage a {
   padding: 9px 13px;
-  color: #fff;
+  color: var(--c-surface);
   background: var(--c-primary);
   border-radius: 9px;
   font-weight: 900;
@@ -338,5 +338,188 @@
 
   .card {
     padding: 15px;
+  }
+}
+
+/* Phase 15 - billing mobile workspace */
+.page {
+  width: min(1120px, 100%);
+  gap: 14px;
+  animation: billingPageIn .42s cubic-bezier(.22,1,.36,1) both;
+}
+
+.back,
+.cancel,
+.addAnother {
+  min-height: 42px;
+  border-radius: 11px;
+}
+
+.card {
+  padding: 19px;
+  border-radius: 18px;
+  box-shadow: 0 11px 30px rgba(25,64,77,.045);
+}
+
+.treatmentList article {
+  border-radius: 12px;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.treatmentList article:hover {
+  transform: translateY(-1px);
+  border-color: #ccdee2;
+  box-shadow: 0 7px 20px rgba(25,64,77,.04);
+}
+
+.financialGrid {
+  gap: 9px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  min-height: 44px;
+  background: var(--c-surface-soft);
+  outline: 0;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  background: var(--c-surface);
+  border-color: #7bb7c2;
+  box-shadow: 0 0 0 4px rgba(37,135,150,.08);
+}
+
+.totals {
+  gap: 7px;
+}
+
+.totals > div {
+  min-width: 0;
+  border-radius: 11px;
+}
+
+.totals strong {
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  position: sticky;
+  bottom: 8px;
+  z-index: 6;
+  padding: 9px;
+  background: rgba(245,248,250,.9);
+  border: 1px solid #d8e5e8;
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+}
+
+.actions button {
+  min-height: 46px;
+  box-shadow: 0 9px 22px rgba(23,107,135,.15);
+}
+
+@keyframes billingPageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 13px;
+    border-radius: 15px;
+  }
+
+  .sectionTitle {
+    gap: 8px;
+  }
+
+  .sectionTitle > span {
+    width: 34px;
+    height: 34px;
+  }
+
+  .treatmentList article {
+    grid-template-columns: minmax(0,1fr) auto !important;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .treatmentList article > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 36px;
+  }
+
+  .addAnother {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .depositNotice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .depositNotice b {
+    padding-top: 6px;
+    border-top: 1px solid #eddcb7;
+  }
+
+  .financialGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .fullWidth {
+    grid-column: auto;
+  }
+
+  .totals {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .totals > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    bottom: 6px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 430px) {
+  .totals {
+    grid-template-columns: 1fr;
+  }
+
+  .totals > div:last-child {
+    grid-column: auto;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .treatmentList article {
+    animation: none;
+    transition: none;
   }
 }

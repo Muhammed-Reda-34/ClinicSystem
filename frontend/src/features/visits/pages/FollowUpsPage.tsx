@@ -22,6 +22,7 @@ import {
   rescheduleFollowUp,
 } from "../api/visitsApi";
 import styles from "./FollowUpsPage.module.css";
+import { SimpleDateInput } from "../../../components/forms/SimpleDateInput";
 
 function localDateKey(
   value = new Date(),
@@ -208,15 +209,9 @@ export function FollowUpsPage() {
               )}
             </span>
 
-            <input
-              type="date"
+            <SimpleDateInput
               value={date}
-              onChange={event =>
-                setDate(
-                  event.target
-                    .value,
-                )
-              }
+              onChange={setDate}
             />
           </label>
         </div>
@@ -298,11 +293,10 @@ export function FollowUpsPage() {
                     <>
                       {postponeVisitId === item.visitId ? (
                         <div className={styles.postponeBox}>
-                          <input
-                            type="date"
+                          <SimpleDateInput
                             min={today}
                             value={postponeDate}
-                            onChange={event => setPostponeDate(event.target.value)}
+                            onChange={setPostponeDate}
                           />
                           <button
                             type="button"

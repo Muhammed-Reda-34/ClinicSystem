@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicSystem.Infrastructure.Visits;
 
-public sealed class VisitService
+public sealed partial class VisitService
 {
     private readonly ClinicDbContext _db;
     private readonly AuditService _audit;
@@ -38,7 +38,8 @@ public sealed class VisitService
         }
 
         if (
-            !await _periodGuard.IsOpenAsync(
+            !command.IsHistoricalEntry
+            && !await _periodGuard.IsOpenAsync(
                 command.VisitDateUtc,
                 cancellationToken)
         )
@@ -176,7 +177,10 @@ public sealed class VisitService
                 ServiceNameEnSnapshot = service.NameEn,
                 UnitPriceSnapshot = service.CurrentPrice,
                 Quantity = commandItem.Quantity,
-                Notes = CleanOptional(commandItem.Notes)
+                Notes = CleanOptional(commandItem.Notes),
+                TreatmentCaseId = Guid.NewGuid(),
+                SessionNumber = 1,
+                CompletesTreatmentCase = commandItem.CompletesTreatmentCase
             };
 
             foreach (var tooth in commandItem.ToothNumbers.Distinct())
@@ -261,6 +265,9 @@ public sealed class VisitService
                         x.ServiceNameArSnapshot,
                         x.UnitPriceSnapshot,
                         x.Quantity,
+                        x.TreatmentCaseId,
+                        x.SessionNumber,
+                        x.CompletesTreatmentCase,
                         Teeth = x.Teeth.Select(t => t.ToothFdiNumber)
                     }),
                 Subtotal = subtotal,
@@ -269,7 +276,8 @@ public sealed class VisitService
                 Total = total,
                 InitialPayment = command.InitialPayment,
                 InitialPaymentNotes = CleanOptional(command.InitialPaymentNotes),
-                visit.FollowUpAtUtc
+                visit.FollowUpAtUtc,
+                command.IsHistoricalEntry
             },
             ipAddress);
 
@@ -298,6 +306,7 @@ public sealed class VisitService
             .AsNoTracking()
             .Where(v =>
                 v.PatientId == patientId
+                && !v.IsVoided
                 && allowedDoctorIds.Contains(v.DoctorId))
             .Include(v => v.TreatmentItems)
                 .ThenInclude(x => x.Teeth)
@@ -334,12 +343,38 @@ public sealed class VisitService
                 x => x.FullName,
                 cancellationToken);
 
+        var caseMetadata = visits
+            .SelectMany(v => v.TreatmentItems.Select(item => new
+            {
+                Visit = v,
+                Item = item
+            }))
+            .GroupBy(x => x.Item.TreatmentCaseId)
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                {
+                    var ordered = group
+                        .OrderBy(x => x.Item.SessionNumber)
+                        .ThenBy(x => x.Visit.VisitDateUtc)
+                        .ThenBy(x => x.Item.Id)
+                        .ToArray();
+
+                    var latest = ordered[^1].Item;
+
+                    return new TreatmentCaseMeta(
+                        ordered.Length,
+                        latest.Id,
+                        latest.CompletesTreatmentCase);
+                });
+
         return visits
             .Select(v => MapVisit(
                 v,
                 patient.PatientCode,
                 patient.FullName,
-                doctorNames[v.DoctorId]))
+                doctorNames[v.DoctorId],
+                caseMetadata))
             .ToArray();
     }
 
@@ -365,6 +400,7 @@ public sealed class VisitService
             join doctorUser in _db.Users.AsNoTracking()
                 on doctor.UserId equals doctorUser.Id
             where allowedDoctorIds.Contains(visit.DoctorId)
+                  && !visit.IsVoided
                   && visit.FollowUpAtUtc != null
                   && visit.FollowUpAtUtc >= fromUtc
                   && visit.FollowUpAtUtc < toUtc
@@ -394,7 +430,9 @@ public sealed class VisitService
 
         var rows = await _db.PatientVisits
             .AsNoTracking()
-            .Where(v => allowedDoctorIds.Contains(v.DoctorId))
+            .Where(v =>
+                !v.IsVoided
+                && allowedDoctorIds.Contains(v.DoctorId))
             .Select(v => new
             {
                 Visit = v,
@@ -490,6 +528,7 @@ public sealed class VisitService
             .SingleOrDefaultAsync(
                 v =>
                     v.Id == visitId
+                    && !v.IsVoided
                     && allowedDoctorIds.Contains(v.DoctorId),
                 cancellationToken);
 
@@ -576,6 +615,7 @@ public sealed class VisitService
             .SingleOrDefaultAsync(
                 x =>
                     x.Id == visitId
+                    && !x.IsVoided
                     && allowedDoctorIds
                         .Contains(x.DoctorId)
                     && x.FollowUpAtUtc != null,
@@ -646,7 +686,10 @@ public sealed class VisitService
 
         var visit = await _db.PatientVisits
             .SingleOrDefaultAsync(
-                x => x.Id == visitId && allowedDoctorIds.Contains(x.DoctorId),
+                x =>
+                    x.Id == visitId
+                    && !x.IsVoided
+                    && allowedDoctorIds.Contains(x.DoctorId),
                 cancellationToken);
 
         if (visit is null)
@@ -676,22 +719,34 @@ public sealed class VisitService
         PatientVisit visit,
         string patientCode,
         string patientName,
-        string doctorName)
+        string doctorName,
+        IReadOnlyDictionary<Guid, TreatmentCaseMeta> caseMetadata)
     {
         var treatments = visit.TreatmentItems
-            .Select(item => new VisitTreatmentDto(
-                item.Id,
-                item.DentalServiceId,
-                item.ServiceNameArSnapshot,
-                item.ServiceNameEnSnapshot,
-                item.UnitPriceSnapshot,
-                item.Quantity,
-                item.Teeth
-                    .Select(x => x.ToothFdiNumber)
-                    .Order()
-                    .ToArray(),
-                item.Notes,
-                item.UnitPriceSnapshot * item.Quantity))
+            .Select(item =>
+            {
+                var meta = caseMetadata[item.TreatmentCaseId];
+
+                return new VisitTreatmentDto(
+                    item.Id,
+                    item.DentalServiceId,
+                    item.ServiceNameArSnapshot,
+                    item.ServiceNameEnSnapshot,
+                    item.UnitPriceSnapshot,
+                    item.Quantity,
+                    item.Teeth
+                        .Select(x => x.ToothFdiNumber)
+                        .Order()
+                        .ToArray(),
+                    item.Notes,
+                    item.UnitPriceSnapshot * item.Quantity,
+                    item.TreatmentCaseId,
+                    item.SessionNumber,
+                    meta.SessionCount,
+                    meta.LatestTreatmentItemId == item.Id,
+                    meta.Completed,
+                    item.CompletesTreatmentCase);
+            })
             .ToArray();
 
         var payments = visit.Payments
@@ -732,6 +787,12 @@ public sealed class VisitService
             treatments,
             payments);
     }
+
+    private sealed record TreatmentCaseMeta(
+        int SessionCount,
+        Guid LatestTreatmentItemId,
+        bool Completed
+    );
 
     private static bool IsValidFdiTooth(int number)
     {

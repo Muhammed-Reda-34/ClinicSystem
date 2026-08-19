@@ -117,6 +117,7 @@ public sealed class LabService
                 where
                     patientIds.Contains(
                         visit.PatientId)
+                    && !visit.IsVoided
                     && allowedDoctorIds
                         .Contains(
                             visit.DoctorId)
@@ -598,6 +599,9 @@ public sealed class LabService
                         expense.Amount,
                         expense.ExpenseDateUtc,
                         expense.Notes,
+                        expense.IsPaid,
+                        expense.PaidAtUtc,
+                        expense.PaidByUserId,
                         expense.CreatedByUserId,
                         expense.CreatedAtUtc);
                 })
@@ -664,6 +668,7 @@ public sealed class LabService
                 .AsNoTracking()
                 .Where(visit =>
                     visit.PatientId == command.PatientId
+                    && !visit.IsVoided
                     && assignedDoctorIds.Contains(visit.DoctorId))
                 .OrderByDescending(visit => visit.VisitDateUtc)
                 .Select(visit => (Guid?)visit.DoctorId)
@@ -680,7 +685,10 @@ public sealed class LabService
 
         var now = DateTime.UtcNow;
 
-        if (!await _periodGuard.IsOpenAsync(now, cancellationToken))
+        if (
+            command.IsPaid
+            && !await _periodGuard.IsOpenAsync(now, cancellationToken)
+        )
         {
             return Fail(
                 "ACCOUNTING_PERIOD_CLOSED",
@@ -700,6 +708,9 @@ public sealed class LabService
             Amount = command.Amount,
             ExpenseDateUtc = now,
             Notes = null,
+            IsPaid = command.IsPaid,
+            PaidAtUtc = command.IsPaid ? now : null,
+            PaidByUserId = command.IsPaid ? actorUserId : null,
             CreatedByUserId = actorUserId,
             CreatedAtUtc = now
         };
@@ -719,6 +730,8 @@ public sealed class LabService
                 expense.ServiceOrItemName,
                 expense.Amount,
                 expense.ExpenseDateUtc,
+                expense.IsPaid,
+                expense.PaidAtUtc,
                 EntryMode = "QuickLabExpense"
             },
             ipAddress);
@@ -758,7 +771,8 @@ public sealed class LabService
         }
 
         if (
-            !await _periodGuard.IsOpenAsync(
+            command.IsPaid
+            && !await _periodGuard.IsOpenAsync(
                 command.ExpenseDateUtc,
                 cancellationToken)
         )
@@ -845,6 +859,16 @@ public sealed class LabService
                 Notes =
                     CleanOptional(
                         command.Notes),
+                IsPaid =
+                    command.IsPaid,
+                PaidAtUtc =
+                    command.IsPaid
+                        ? command.ExpenseDateUtc
+                        : null,
+                PaidByUserId =
+                    command.IsPaid
+                        ? actorUserId
+                        : null,
                 CreatedByUserId =
                     actorUserId,
                 CreatedAtUtc =
@@ -867,12 +891,112 @@ public sealed class LabService
                 expense.LabOrderId,
                 expense.ServiceOrItemName,
                 expense.Amount,
-                expense.ExpenseDateUtc
+                expense.ExpenseDateUtc,
+                expense.IsPaid,
+                expense.PaidAtUtc
             },
             ipAddress);
 
         await _db.SaveChangesAsync(
             cancellationToken);
+
+        return new LabWriteResult(
+            true,
+            null,
+            null,
+            expense.Id);
+    }
+
+    public async Task<LabWriteResult>
+        SetExpensePaymentStatusAsync(
+            SetLabExpensePaymentStatusCommand command,
+            IReadOnlyCollection<Guid> allowedDoctorIds,
+            Guid actorUserId,
+            string? ipAddress,
+            CancellationToken cancellationToken)
+    {
+        if (allowedDoctorIds.Count == 0)
+        {
+            return Fail(
+                "DOCTOR_SCOPE_DENIED",
+                "Doctor scope is not allowed.");
+        }
+
+        var expense =
+            await _db.LabExpenses
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.Id == command.ExpenseId
+                        && allowedDoctorIds.Contains(x.DoctorId),
+                    cancellationToken);
+
+        if (expense is null)
+        {
+            return Fail(
+                "LAB_EXPENSE_NOT_FOUND",
+                "Lab expense was not found in the current doctor scope.");
+        }
+
+        if (expense.IsPaid == command.IsPaid)
+        {
+            return new LabWriteResult(
+                true,
+                null,
+                null,
+                expense.Id);
+        }
+
+        var now = DateTime.UtcNow;
+
+        if (command.IsPaid)
+        {
+            if (!await _periodGuard.IsOpenAsync(now, cancellationToken))
+            {
+                return Fail(
+                    "ACCOUNTING_PERIOD_CLOSED",
+                    "Accounting period is closed.");
+            }
+        }
+        else if (
+            expense.PaidAtUtc is not null
+            && !await _periodGuard.IsOpenAsync(
+                expense.PaidAtUtc.Value,
+                cancellationToken)
+        )
+        {
+            return Fail(
+                "ACCOUNTING_PERIOD_CLOSED",
+                "The payment belongs to a closed accounting period and cannot be reversed.");
+        }
+
+        var before = new
+        {
+            expense.IsPaid,
+            expense.PaidAtUtc,
+            expense.PaidByUserId
+        };
+
+        expense.IsPaid = command.IsPaid;
+        expense.PaidAtUtc = command.IsPaid ? now : null;
+        expense.PaidByUserId = command.IsPaid ? actorUserId : null;
+
+        _audit.Add(
+            actorUserId,
+            command.IsPaid
+                ? "LabExpenseMarkedPaid"
+                : "LabExpenseMarkedUnpaid",
+            nameof(LabExpense),
+            expense.Id.ToString(),
+            before,
+            new
+            {
+                expense.IsPaid,
+                expense.PaidAtUtc,
+                expense.PaidByUserId
+            },
+            ipAddress);
+
+        await _db.SaveChangesAsync(cancellationToken);
 
         return new LabWriteResult(
             true,
@@ -892,6 +1016,7 @@ public sealed class LabService
             .AnyAsync(
                 visit =>
                     visit.Id == visitId
+                    && !visit.IsVoided
                     && visit.PatientId == patientId
                     && visit.DoctorId == doctorId,
                 cancellationToken);

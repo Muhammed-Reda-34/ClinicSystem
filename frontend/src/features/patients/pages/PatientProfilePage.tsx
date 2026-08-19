@@ -1,4 +1,6 @@
+import axios from "axios";
 import {
+  useMemo,
   useState,
 } from "react";
 import {
@@ -14,6 +16,9 @@ import {
 import {
   AppIcon,
 } from "../../../components/icons/AppIcon";
+import {
+  ClinicPageHeader,
+} from "../../../components/ui/ClinicPageHeader";
 import {
   useLanguage,
 } from "../../../i18n/LanguageContext";
@@ -35,6 +40,7 @@ import {
 } from "../../appointments/api/appointmentsApi";
 import {
   addVisitPayment,
+  deletePatientVisit,
   getPatientVisits,
 } from "../../visits/api/visitsApi";
 import {
@@ -98,6 +104,15 @@ function attendanceClass(
     default:
       return styles.scheduled;
   }
+}
+
+function isConsultationTreatment(item: {
+  serviceNameAr: string;
+  serviceNameEn: string | null;
+}) {
+  const ar = item.serviceNameAr.trim();
+  const en = (item.serviceNameEn ?? "").trim().toLowerCase();
+  return ar === "كشف" || en === "consultation" || en === "examination";
 }
 
 export function PatientProfilePage() {
@@ -196,6 +211,10 @@ export function PatientProfilePage() {
     setPaymentMethods,
   ] =
     useState<Record<string, string>>({});
+
+  const [visitToDelete, setVisitToDelete] = useState<string | null>(null);
+  const [visitDeleteReason, setVisitDeleteReason] = useState("");
+  const [visitDeleteError, setVisitDeleteError] = useState("");
 
   const patientQuery =
     useQuery({
@@ -468,6 +487,57 @@ export function PatientProfilePage() {
         },
     });
 
+  const deleteVisitMutation =
+    useMutation({
+      mutationFn: ({ visitId, reason }: { visitId: string; reason: string }) =>
+        deletePatientVisit(visitId, reason),
+      onSuccess: async () => {
+        setVisitToDelete(null);
+        setVisitDeleteReason("");
+        setVisitDeleteError("");
+        await Promise.all([
+          client.invalidateQueries({ queryKey: ["patient-visits", patientId] }),
+          client.invalidateQueries({ queryKey: ["visit-debts"] }),
+          client.invalidateQueries({ queryKey: ["dashboard"] }),
+          client.invalidateQueries({ queryKey: ["finance"] }),
+        ]);
+      },
+      onError: error => {
+        if (axios.isAxiosError(error)) {
+          const message = (error.response?.data as { message?: string } | undefined)?.message;
+          setVisitDeleteError(
+            message ?? (ar ? "تعذر حذف الزيارة." : "Unable to delete visit."),
+          );
+        } else {
+          setVisitDeleteError(ar ? "تعذر حذف الزيارة." : "Unable to delete visit.");
+        }
+      },
+    });
+
+  const lifetimeSummary = useMemo(() => {
+    const visits = visitsQuery.data ?? [];
+    const billed = visits.reduce((sum, visit) => sum + visit.total, 0);
+    const remaining = visits.reduce((sum, visit) => sum + visit.remaining, 0);
+    const collected = visits.reduce(
+      (sum, visit) => sum + visit.payments.reduce((paymentSum, payment) => paymentSum + payment.amount, 0),
+      0,
+    );
+    const latestVisitUtc = visits.reduce<string | null>((latest, visit) => {
+      if (!latest) return visit.visitDateUtc;
+      return new Date(visit.visitDateUtc).getTime() > new Date(latest).getTime()
+        ? visit.visitDateUtc
+        : latest;
+    }, null);
+
+    return {
+      count: visits.length,
+      billed,
+      collected,
+      remaining,
+      latestVisitUtc,
+    };
+  }, [visitsQuery.data]);
+
   if (
     patientQuery.isLoading
   ) {
@@ -619,91 +689,74 @@ export function PatientProfilePage() {
 
   return (
     <section className={styles.page}>
-      <header className={styles.profileHeader}>
-        <div className={styles.identity}>
-          <div className={styles.avatar}>
-            {patient.fullName
-              .trim()
-              .charAt(0)}
-          </div>
-
-          <div>
-            <div className={styles.topLine}>
-              <span className={styles.code}>
-                {patient.patientCode}
-              </span>
-
-              {patient.isBlacklisted && (
-                <span className={styles.blacklist}>
-                  <AppIcon
-                    name="warning"
-                    size={13}
-                  />
-                  {t("blacklist")}
-                </span>
-              )}
-            </div>
-
-            <h1>
-              {patient.fullName}
-            </h1>
-
-            <div className={styles.meta}>
-              <span>
-                {patient.age
-                  ?? "—"}
-                {" "}
-                {patient.age
-                  !== null
-                  ? t("years")
-                  : ""}
-              </span>
-
-              <span>
-                •
-              </span>
-
-              <span>
-                {t(
-                  statusTranslationKey(
-                    patient.profileStatus,
-                  ),
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.headerActions}>
-          <a
-            className={styles.whatsapp}
-            href={toWhatsAppHref(
-              patient.phoneNumber,
-            )}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {t("whatsapp")}
-            <AppIcon
-              name="external"
-              size={15}
-            />
-          </a>
-
-          {canEdit && (
-            <Link
-              className={styles.actionButton}
-              to={`/patients/${patient.id}/edit`}
+      <ClinicPageHeader
+        eyebrow={`${ar ? "ملف المريض" : "Patient file"} • ${patient.patientCode}`}
+        title={patient.fullName}
+        subtitle={
+          ar
+            ? `العمر: ${patient.age ?? "—"}${patient.age !== null ? " سنة" : ""} • ${patient.phoneNumber}`
+            : `Age: ${patient.age ?? "—"}${patient.age !== null ? " years" : ""} • ${patient.phoneNumber}`
+        }
+        icon="patients"
+        badge={t(statusTranslationKey(patient.profileStatus))}
+        actions={
+          <>
+            <a
+              className={styles.whatsapp}
+              href={toWhatsAppHref(patient.phoneNumber)}
+              target="_blank"
+              rel="noreferrer"
             >
-              <AppIcon
-                name="edit"
-                size={15}
-              />
-              {t("edit")}
-            </Link>
-          )}
-        </div>
-      </header>
+              {t("whatsapp")}
+              <AppIcon name="external" size={15} />
+            </a>
+
+            {canEdit && (
+              <Link
+                className={styles.actionButton}
+                to={`/patients/${patient.id}/edit`}
+              >
+                <AppIcon name="edit" size={15} />
+                {t("edit")}
+              </Link>
+            )}
+          </>
+        }
+        metrics={[
+          {
+            label: ar ? "إجمالي الزيارات" : "Total visits",
+            value: lifetimeSummary.count,
+            icon: "tooth",
+            tone: "primary",
+          },
+          {
+            label: ar ? "إجمالي العلاج" : "Total treatment",
+            value: `${lifetimeSummary.billed.toLocaleString()} EGP`,
+            icon: "debt",
+            tone: "neutral",
+          },
+          {
+            label: ar ? "المحصل" : "Collected",
+            value: `${lifetimeSummary.collected.toLocaleString()} EGP`,
+            icon: "reports",
+            tone: "success",
+          },
+          {
+            label: ar ? "المتبقي" : "Outstanding",
+            value: `${lifetimeSummary.remaining.toLocaleString()} EGP`,
+            icon: "warning",
+            tone: lifetimeSummary.remaining > 0 ? "warning" : "success",
+          },
+          {
+            label: ar ? "آخر زيارة" : "Last visit",
+            value: lifetimeSummary.latestVisitUtc
+              ? new Date(lifetimeSummary.latestVisitUtc).toLocaleDateString(ar ? "ar-EG" : "en-GB")
+              : "—",
+            icon: "calendar",
+            tone: "neutral",
+          },
+        ]}
+      />
 
       {patient.isBlacklisted && (
         <div className={styles.blacklistBanner}>
@@ -735,7 +788,7 @@ export function PatientProfilePage() {
           to={`/patients/${patient.id}/medical-intake`}
         >
           <span className={styles.actionIcon}>
-            +
+            <AppIcon name="patients" />
           </span>
 
           <div>
@@ -755,7 +808,7 @@ export function PatientProfilePage() {
           to={`/appointments?patientId=${patient.id}`}
         >
           <span className={styles.actionIcon}>
-            +
+            <AppIcon name="calendar" />
           </span>
 
           <div>
@@ -776,7 +829,7 @@ export function PatientProfilePage() {
             to={`/patients/${patient.id}/visits/new`}
           >
             <span className={styles.actionIcon}>
-              +
+              <AppIcon name="tooth" />
             </span>
 
             <div>
@@ -796,7 +849,7 @@ export function PatientProfilePage() {
             to={`/patients/${patient.id}/records`}
           >
             <span className={styles.actionIcon}>
-              +
+              <AppIcon name="reports" />
             </span>
 
             <div>
@@ -1313,6 +1366,29 @@ export function PatientProfilePage() {
                       )}
                     </div>
 
+                    {canEdit && (
+                      <div className={styles.visitActions}>
+                        <Link
+                          to={`/patients/${patient.id}/visits/${visit.id}/edit`}
+                          className={styles.editVisitButton}
+                        >
+                          <AppIcon name="edit" />
+                          {ar ? "تعديل الزيارة" : "Edit visit"}
+                        </Link>
+                        <button
+                          type="button"
+                          className={styles.deleteVisitButton}
+                          onClick={() => {
+                            setVisitToDelete(visit.id);
+                            setVisitDeleteReason("");
+                            setVisitDeleteError("");
+                          }}
+                        >
+                          {ar ? "حذف الزيارة" : "Delete visit"}
+                        </button>
+                      </div>
+                    )}
+
                     <div className={styles.visitBody}>
                       <strong>
                         {visit.treatments
@@ -1359,6 +1435,40 @@ export function PatientProfilePage() {
                               ? "بدون أسنان محددة"
                               : "No specific teeth"
                           )}
+                      </div>
+
+                      <div className={styles.treatmentSessions}>
+                        {visit.treatments
+                          .filter(item => !isConsultationTreatment(item))
+                          .map(item => (
+                            <div key={`session-${item.id}`} className={styles.sessionRow}>
+                              <div>
+                                <strong>
+                                  {ar ? item.serviceNameAr : item.serviceNameEn || item.serviceNameAr}
+                                </strong>
+                                <span>
+                                  {ar
+                                    ? `جلسة ${item.sessionNumber} من ${item.caseSessionCount}`
+                                    : `Session ${item.sessionNumber} of ${item.caseSessionCount}`}
+                                  {" • "}
+                                  {item.caseCompleted
+                                    ? (ar ? "العلاج مكتمل" : "Completed")
+                                    : (ar ? "العلاج مستمر" : "In progress")}
+                                </span>
+                              </div>
+                              {item.isLatestSession && (
+                                <Link
+                                  to={`/patients/${patient.id}/treatments/${item.id}/session/new`}
+                                  className={styles.treatmentFollowUpButton}
+                                >
+                                  <AppIcon name="followUp" />
+                                  {item.caseCompleted
+                                    ? (ar ? "جلسة إضافية" : "Additional session")
+                                    : (ar ? "متابعة العلاج" : "Continue treatment")}
+                                </Link>
+                              )}
+                            </div>
+                          ))}
                       </div>
 
                       {(visit.clinicalNotes
@@ -1597,6 +1707,56 @@ export function PatientProfilePage() {
           )}
         </article>
       </div>
+
+      {visitToDelete && (
+        <div className={styles.visitDeleteOverlay} role="dialog" aria-modal="true">
+          <div className={styles.visitDeleteDialog}>
+            <div>
+              <strong>{ar ? "حذف الزيارة" : "Delete visit"}</strong>
+              <p>
+                {ar
+                  ? "الحذف هنا آمن: الزيارة تظل في سجل الـ Audit ولا تظهر في الحسابات أو بروفايل المريض. الزيارة التي تحتوي على دفعات أو سجلات معمل لن تُحذف حتى يتم التعامل معها أولًا."
+                  : "The visit is safely voided and remains auditable. Visits with payments or lab records are protected from deletion."}
+              </p>
+            </div>
+            <label>
+              <span>{ar ? "سبب الحذف" : "Reason"}</span>
+              <textarea
+                rows={3}
+                value={visitDeleteReason}
+                onChange={event => setVisitDeleteReason(event.target.value)}
+                placeholder={ar ? "مثال: تم إدخال الزيارة بالخطأ" : "Example: entered by mistake"}
+              />
+            </label>
+            {visitDeleteError && <p className={styles.visitDeleteError}>{visitDeleteError}</p>}
+            <div className={styles.visitDeleteButtons}>
+              <button
+                type="button"
+                onClick={() => {
+                  setVisitToDelete(null);
+                  setVisitDeleteReason("");
+                  setVisitDeleteError("");
+                }}
+              >
+                {ar ? "إلغاء" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                className={styles.confirmVisitDelete}
+                disabled={deleteVisitMutation.isPending || !visitDeleteReason.trim()}
+                onClick={() => deleteVisitMutation.mutate({
+                  visitId: visitToDelete,
+                  reason: visitDeleteReason.trim(),
+                })}
+              >
+                {deleteVisitMutation.isPending
+                  ? (ar ? "جارِ الحذف..." : "Deleting...")
+                  : (ar ? "تأكيد حذف الزيارة" : "Confirm delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {(isOwner
         || isSecretary

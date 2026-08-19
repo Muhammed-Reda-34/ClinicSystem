@@ -9,8 +9,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { AppIcon } from "../../../components/icons/AppIcon";
 import { useLanguage } from "../../../i18n/LanguageContext";
 import {
+  createDoctor,
   createStaff,
   getDoctors,
   getStaff,
@@ -53,6 +55,13 @@ function apiErrorMessage(error: unknown, ar: boolean) {
     : "Unable to create the account. Review the fields and try again.";
 }
 
+const emptyDoctor = {
+  fullName: "",
+  email: "",
+  password: "",
+  specialization: "",
+};
+
 const emptyStaff = {
   fullName: "",
   email: "",
@@ -76,10 +85,14 @@ export function UsersPage() {
     queryFn: getStaff,
   });
 
+  const [doctorForm, setDoctorForm] = useState(emptyDoctor);
   const [staffForm, setStaffForm] = useState(emptyStaff);
+  const [doctorFormKey, setDoctorFormKey] = useState(0);
   const [staffFormKey, setStaffFormKey] = useState(0);
+  const [doctorError, setDoctorError] = useState("");
   const [staffError, setStaffError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showDoctorPassword, setShowDoctorPassword] = useState(false);
   const [showStaffPassword, setShowStaffPassword] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [editingDoctorIds, setEditingDoctorIds] = useState<string[]>([]);
@@ -96,6 +109,22 @@ export function UsersPage() {
       client.invalidateQueries({ queryKey: ["context", "doctors"] }),
     ]);
   };
+
+  const doctorMutation = useMutation({
+    mutationFn: createDoctor,
+    onMutate: () => {
+      setDoctorError("");
+      setSuccess("");
+    },
+    onSuccess: async () => {
+      setDoctorForm(emptyDoctor);
+      setShowDoctorPassword(false);
+      setDoctorFormKey(value => value + 1);
+      setSuccess(ar ? "تم إنشاء حساب الطبيب وربطه بالعيادة بنجاح." : "Doctor account created successfully.");
+      await refreshUsers();
+    },
+    onError: error => setDoctorError(apiErrorMessage(error, ar)),
+  });
 
   const staffMutation = useMutation({
     mutationFn: createStaff,
@@ -129,6 +158,14 @@ export function UsersPage() {
     },
   });
 
+  function submitDoctor(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    doctorMutation.mutate({
+      ...doctorForm,
+      specialization: doctorForm.specialization.trim() || undefined,
+    });
+  }
+
   function submitStaff(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     staffMutation.mutate(staffForm);
@@ -155,12 +192,12 @@ export function UsersPage() {
     <section className={styles.page}>
       <header className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>Administration</p>
-          <h1>{ar ? "إدارة المستخدمين" : "User management"}</h1>
+          <p className={styles.eyebrow}>Owner Control</p>
+          <h1>{ar ? "إدارة فريق العيادة" : "Clinic team management"}</h1>
           <p>
             {ar
-              ? "الطبيب يستطيع من هنا إنشاء حساب سكرتيرة أو ممرضة فقط وإدارة ربط الموظفين بالأطباء. إنشاء طبيب جديد غير متاح من داخل النظام."
-              : "Doctors can create secretary or nurse accounts here and manage staff assignments. New doctor creation is not available inside the clinic app."}
+              ? "هذه الصفحة متاحة للمالك فقط. من هنا يتم إنشاء الأطباء والسكرتارية والتمريض وربط الموظفين بالأطباء."
+              : "Owner-only area for creating doctors, secretaries and nurses and managing staff-to-doctor assignments."}
           </p>
         </div>
 
@@ -176,36 +213,59 @@ export function UsersPage() {
         </div>
       </header>
 
+      <div className={styles.ownerRule}>
+        <AppIcon name="warning" />
+        <div>
+          <strong>{ar ? "صلاحية المالك فقط" : "Owner-only permission"}</strong>
+          <span>
+            {ar
+              ? "أي طبيب يتم إنشاؤه هنا لا يستطيع إنشاء طبيب أو سكرتيرة أو ممرضة أخرى."
+              : "Doctors created here cannot create other doctors, secretaries or nurses."}
+          </span>
+        </div>
+      </div>
+
       {success && <div className={styles.success}>{success}</div>}
 
-      <form
-        key={`staff-${staffFormKey}`}
-        className={styles.formCard}
-        onSubmit={submitStaff}
-        autoComplete="off"
-      >
-        <div className={styles.formHeader}>
-          <span>01</span>
-          <div>
-            <h2>{ar ? "إضافة سكرتيرة / ممرضة" : "Add secretary / nurse"}</h2>
-            <p>
-              {ar
-                ? "أنشئ حساب الموظف وحدد الطبيب أو الأطباء الذين يعمل معهم."
-                : "Create the staff account and choose the doctor or doctors they work with."}
-            </p>
+      <div className={styles.formsGrid}>
+        <form
+          key={`doctor-${doctorFormKey}`}
+          className={styles.formCard}
+          onSubmit={submitDoctor}
+          autoComplete="off"
+        >
+          <div className={styles.formHeader}>
+            <span><AppIcon name="tooth" /></span>
+            <div>
+              <h2>{ar ? "إضافة طبيب" : "Add doctor"}</h2>
+              <p>
+                {ar
+                  ? "ينشأ كطبيب عادي داخل العيادة، والمالك فقط يظل صاحب صلاحية إدارة المستخدمين."
+                  : "Creates a regular clinic doctor. User management remains owner-only."}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className={styles.twoColumns}>
-          <label>
-            <span>{ar ? "الاسم بالكامل" : "Full name"}</span>
-            <input
-              required
-              autoComplete="off"
-              value={staffForm.fullName}
-              onChange={event => setStaffForm({ ...staffForm, fullName: event.target.value })}
-            />
-          </label>
+          <div className={styles.twoColumns}>
+            <label>
+              <span>{ar ? "اسم الطبيب" : "Doctor name"}</span>
+              <input
+                required
+                autoComplete="off"
+                value={doctorForm.fullName}
+                onChange={event => setDoctorForm({ ...doctorForm, fullName: event.target.value })}
+              />
+            </label>
+
+            <label>
+              <span>{ar ? "التخصص — اختياري" : "Specialization — optional"}</span>
+              <input
+                maxLength={150}
+                value={doctorForm.specialization}
+                onChange={event => setDoctorForm({ ...doctorForm, specialization: event.target.value })}
+              />
+            </label>
+          </div>
 
           <label>
             <span>{ar ? "البريد الإلكتروني" : "Email"}</span>
@@ -213,25 +273,9 @@ export function UsersPage() {
               required
               type="email"
               autoComplete="off"
-              value={staffForm.email}
-              onChange={event => setStaffForm({ ...staffForm, email: event.target.value })}
+              value={doctorForm.email}
+              onChange={event => setDoctorForm({ ...doctorForm, email: event.target.value })}
             />
-          </label>
-        </div>
-
-        <div className={styles.twoColumns}>
-          <label>
-            <span>{ar ? "الوظيفة" : "Role"}</span>
-            <select
-              value={staffForm.role}
-              onChange={event => setStaffForm({
-                ...staffForm,
-                role: event.target.value as "Secretary" | "Nurse",
-              })}
-            >
-              <option value="Secretary">{ar ? "سكرتيرة" : "Secretary"}</option>
-              <option value="Nurse">{ar ? "ممرضة" : "Nurse"}</option>
-            </select>
           </label>
 
           <label>
@@ -241,61 +285,154 @@ export function UsersPage() {
               minLength={8}
               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
               autoComplete="new-password"
-              type={showStaffPassword ? "text" : "password"}
-              value={staffForm.password}
-              onChange={event => setStaffForm({ ...staffForm, password: event.target.value })}
+              type={showDoctorPassword ? "text" : "password"}
+              value={doctorForm.password}
+              onChange={event => setDoctorForm({ ...doctorForm, password: event.target.value })}
             />
           </label>
-        </div>
 
-        <fieldset className={styles.doctorSelector}>
-          <legend>{ar ? "تعمل مع أي طبيب؟" : "Works with which doctor?"}</legend>
-          <div>
-            {activeDoctors.map(doctor => (
-              <label key={doctor.doctorId} className={styles.doctorOption}>
-                <input
-                  type="checkbox"
-                  checked={staffForm.doctorIds.includes(doctor.doctorId)}
-                  onChange={() => toggleStaffDoctor(doctor.doctorId)}
-                />
-                <span>
-                  <strong>{doctor.fullName}</strong>
-                  <small>{doctor.specialization || (ar ? "طبيب" : "Doctor")}</small>
-                </span>
-              </label>
-            ))}
+          <div className={styles.passwordRow}>
+            <button
+              type="button"
+              onClick={() => setDoctorForm({ ...doctorForm, password: generateTemporaryPassword() })}
+            >
+              {ar ? "توليد كلمة قوية" : "Generate password"}
+            </button>
+            <button type="button" onClick={() => setShowDoctorPassword(value => !value)}>
+              {showDoctorPassword ? (ar ? "إخفاء" : "Hide") : (ar ? "إظهار" : "Show")}
+            </button>
           </div>
-        </fieldset>
 
-        <div className={styles.passwordRow}>
-          <button
-            type="button"
-            onClick={() => setStaffForm({ ...staffForm, password: generateTemporaryPassword() })}
-          >
-            {ar ? "توليد كلمة قوية" : "Generate password"}
+          {doctorError && <div className={styles.error}>{doctorError}</div>}
+
+          <button className={styles.primary} disabled={doctorMutation.isPending}>
+            <AppIcon name="plus" />
+            {doctorMutation.isPending
+              ? (ar ? "جاري إنشاء الطبيب..." : "Creating doctor...")
+              : (ar ? "إنشاء حساب الطبيب" : "Create doctor account")}
           </button>
-          <button type="button" onClick={() => setShowStaffPassword(value => !value)}>
-            {showStaffPassword ? (ar ? "إخفاء" : "Hide") : (ar ? "إظهار" : "Show")}
-          </button>
-        </div>
+        </form>
 
-        <small className={styles.hint}>
-          {ar
-            ? "بعد الإنشاء يتم تفريغ جميع الحقول تلقائيًا."
-            : "All fields are cleared automatically after creation."}
-        </small>
-
-        {staffError && <div className={styles.error}>{staffError}</div>}
-
-        <button
-          className={styles.primary}
-          disabled={staffMutation.isPending || staffForm.doctorIds.length === 0}
+        <form
+          key={`staff-${staffFormKey}`}
+          className={styles.formCard}
+          onSubmit={submitStaff}
+          autoComplete="off"
         >
-          {staffMutation.isPending
-            ? (ar ? "جاري الإنشاء..." : "Creating...")
-            : (ar ? "إنشاء حساب الموظف" : "Create staff account")}
-        </button>
-      </form>
+          <div className={styles.formHeader}>
+            <span><AppIcon name="users" /></span>
+            <div>
+              <h2>{ar ? "إضافة سكرتيرة / ممرضة" : "Add secretary / nurse"}</h2>
+              <p>
+                {ar
+                  ? "أنشئ حساب الموظف وحدد الطبيب أو الأطباء الذين يعمل معهم."
+                  : "Create the staff account and choose the doctor or doctors they work with."}
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.twoColumns}>
+            <label>
+              <span>{ar ? "الاسم بالكامل" : "Full name"}</span>
+              <input
+                required
+                autoComplete="off"
+                value={staffForm.fullName}
+                onChange={event => setStaffForm({ ...staffForm, fullName: event.target.value })}
+              />
+            </label>
+
+            <label>
+              <span>{ar ? "البريد الإلكتروني" : "Email"}</span>
+              <input
+                required
+                type="email"
+                autoComplete="off"
+                value={staffForm.email}
+                onChange={event => setStaffForm({ ...staffForm, email: event.target.value })}
+              />
+            </label>
+          </div>
+
+          <div className={styles.twoColumns}>
+            <label>
+              <span>{ar ? "الوظيفة" : "Role"}</span>
+              <select
+                value={staffForm.role}
+                onChange={event => setStaffForm({
+                  ...staffForm,
+                  role: event.target.value as "Secretary" | "Nurse",
+                })}
+              >
+                <option value="Secretary">{ar ? "سكرتيرة" : "Secretary"}</option>
+                <option value="Nurse">{ar ? "ممرضة" : "Nurse"}</option>
+              </select>
+            </label>
+
+            <label>
+              <span>{ar ? "كلمة المرور المؤقتة" : "Temporary password"}</span>
+              <input
+                required
+                minLength={8}
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
+                autoComplete="new-password"
+                type={showStaffPassword ? "text" : "password"}
+                value={staffForm.password}
+                onChange={event => setStaffForm({ ...staffForm, password: event.target.value })}
+              />
+            </label>
+          </div>
+
+          <fieldset className={styles.doctorSelector}>
+            <legend>{ar ? "تعمل مع أي طبيب؟" : "Works with which doctor?"}</legend>
+            <div>
+              {activeDoctors.map(doctor => (
+                <label key={doctor.doctorId} className={styles.doctorOption}>
+                  <input
+                    type="checkbox"
+                    checked={staffForm.doctorIds.includes(doctor.doctorId)}
+                    onChange={() => toggleStaffDoctor(doctor.doctorId)}
+                  />
+                  <span>
+                    <strong>{doctor.fullName}</strong>
+                    <small>{doctor.specialization || (ar ? "طبيب" : "Doctor")}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className={styles.passwordRow}>
+            <button
+              type="button"
+              onClick={() => setStaffForm({ ...staffForm, password: generateTemporaryPassword() })}
+            >
+              {ar ? "توليد كلمة قوية" : "Generate password"}
+            </button>
+            <button type="button" onClick={() => setShowStaffPassword(value => !value)}>
+              {showStaffPassword ? (ar ? "إخفاء" : "Hide") : (ar ? "إظهار" : "Show")}
+            </button>
+          </div>
+
+          <small className={styles.hint}>
+            {ar
+              ? "بعد الإنشاء يتم تفريغ جميع الحقول تلقائيًا."
+              : "All fields are cleared automatically after creation."}
+          </small>
+
+          {staffError && <div className={styles.error}>{staffError}</div>}
+
+          <button
+            className={styles.primary}
+            disabled={staffMutation.isPending || staffForm.doctorIds.length === 0}
+          >
+            <AppIcon name="plus" />
+            {staffMutation.isPending
+              ? (ar ? "جاري الإنشاء..." : "Creating...")
+              : (ar ? "إنشاء حساب الموظف" : "Create staff account")}
+          </button>
+        </form>
+      </div>
 
       <div className={styles.listsGrid}>
         <section className={styles.listCard}>

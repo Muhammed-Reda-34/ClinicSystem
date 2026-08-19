@@ -11,4 +11,6 @@ public sealed class CreateQuickLabExpenseRequest
 
     [Range(0.01, double.MaxValue)]
     public decimal Amount { get; set; }
+
+    public bool IsPaid { get; set; } = true;
 }

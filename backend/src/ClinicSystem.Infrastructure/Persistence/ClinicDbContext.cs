@@ -515,9 +515,19 @@ public sealed class ClinicDbContext
             entity.Property(x => x.ExtraReason)
                 .HasMaxLength(1000);
 
+            entity.Property(x => x.VoidReason)
+                .HasMaxLength(1000);
+
             entity.HasIndex(x => new
             {
                 x.PatientId,
+                x.VisitDateUtc
+            });
+
+            entity.HasIndex(x => new
+            {
+                x.IsVoided,
+                x.DoctorId,
                 x.VisitDateUtc
             });
 
@@ -569,6 +579,13 @@ public sealed class ClinicDbContext
 
             entity.Property(x => x.Notes)
                 .HasMaxLength(1500);
+
+            entity.HasIndex(x => new
+            {
+                x.TreatmentCaseId,
+                x.SessionNumber
+            })
+                .IsUnique();
 
             entity.HasOne(x => x.Visit)
                 .WithMany(x => x.TreatmentItems)
@@ -820,6 +837,13 @@ public sealed class ClinicDbContext
 
             entity.Property(x => x.Notes)
                 .HasMaxLength(2000);
+
+            entity.HasIndex(x => new
+            {
+                x.DoctorId,
+                x.IsPaid,
+                x.PaidAtUtc
+            });
 
             entity.HasIndex(x => new
             {

@@ -5,6 +5,7 @@ export type VisitDraftTreatment = {
   notes: string | null;
   serviceName: string;
   unitPrice: number;
+  completesTreatmentCase?: boolean;
 };
 
 export type VisitDraft = {
@@ -45,6 +46,10 @@ export function loadVisitDraft(
       hasDeposit: parsed.hasDeposit ?? false,
       depositAmount: parsed.depositAmount ?? 0,
       depositPaymentMethod: parsed.depositPaymentMethod ?? null,
+      treatments: parsed.treatments.map(item => ({
+        ...item,
+        completesTreatmentCase: item.completesTreatmentCase ?? true,
+      })),
     };
   } catch {
     return null;
