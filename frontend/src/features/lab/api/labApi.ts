@@ -46,3 +46,18 @@ export async function setLabExpensePaymentStatus(
 ) {
   await http.patch(`/lab/expenses/${expenseId}/payment-status`, { isPaid });
 }
+
+export async function updateLabExpense(
+  expenseId: string,
+  payload: {
+    description: string | null;
+    amount: number;
+    isPaid: boolean;
+  },
+) {
+  await http.put(`/lab/expenses/${expenseId}`, payload);
+}
+
+export async function deleteLabExpense(expenseId: string) {
+  await http.delete(`/lab/expenses/${expenseId}`);
+}

@@ -83,6 +83,17 @@ public sealed record SetLabExpensePaymentStatusCommand(
     bool IsPaid
 );
 
+public sealed record UpdateLabExpenseCommand(
+    Guid ExpenseId,
+    string? Description,
+    decimal Amount,
+    bool IsPaid
+);
+
+public sealed record DeleteLabExpenseCommand(
+    Guid ExpenseId
+);
+
 public sealed record LabExpenseDto(
     Guid Id,
     Guid PatientId,

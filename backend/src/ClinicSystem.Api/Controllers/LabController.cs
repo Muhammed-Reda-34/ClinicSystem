@@ -226,6 +226,68 @@ public sealed class LabController : ControllerBase
                 });
     }
 
+    [HttpPut("expenses/{expenseId:guid}")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> UpdateExpense(
+        Guid expenseId,
+        UpdateLabExpenseRequest request,
+        CancellationToken cancellationToken)
+    {
+        var scope =
+            await ResolveScopeAsync(
+                cancellationToken);
+
+        var result =
+            await _service.UpdateExpenseAsync(
+                new UpdateLabExpenseCommand(
+                    expenseId,
+                    request.Description,
+                    request.Amount,
+                    request.IsPaid),
+                scope,
+                User.GetUserIdOrThrow(),
+                GetClientIp(),
+                cancellationToken);
+
+        return result.Succeeded
+            ? Ok(new { id = result.Id })
+            : BadRequest(
+                new
+                {
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage
+                });
+    }
+
+    [HttpDelete("expenses/{expenseId:guid}")]
+    [Authorize(Roles = "Owner,Doctor,Secretary,Nurse")]
+    public async Task<IActionResult> DeleteExpense(
+        Guid expenseId,
+        CancellationToken cancellationToken)
+    {
+        var scope =
+            await ResolveScopeAsync(
+                cancellationToken);
+
+        var result =
+            await _service.DeleteExpenseAsync(
+                new DeleteLabExpenseCommand(
+                    expenseId),
+                scope,
+                User.GetUserIdOrThrow(),
+                GetClientIp(),
+                cancellationToken);
+
+        return result.Succeeded
+            ? NoContent()
+            : BadRequest(
+                new
+                {
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage
+                });
+    }
+
     private async Task<IReadOnlyCollection<Guid>>
         ResolveScopeAsync(
             CancellationToken cancellationToken)

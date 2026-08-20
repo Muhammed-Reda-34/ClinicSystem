@@ -1005,6 +1005,212 @@ public sealed class LabService
             expense.Id);
     }
 
+    public async Task<LabWriteResult>
+        UpdateExpenseAsync(
+            UpdateLabExpenseCommand command,
+            IReadOnlyCollection<Guid> allowedDoctorIds,
+            Guid actorUserId,
+            string? ipAddress,
+            CancellationToken cancellationToken)
+    {
+        if (allowedDoctorIds.Count == 0)
+        {
+            return Fail(
+                "DOCTOR_SCOPE_DENIED",
+                "Doctor scope is not allowed.");
+        }
+
+        if (command.Amount <= 0)
+        {
+            return Fail(
+                "INVALID_AMOUNT",
+                "Amount must be greater than zero.");
+        }
+
+        var expense =
+            await _db.LabExpenses
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.Id == command.ExpenseId
+                        && allowedDoctorIds.Contains(x.DoctorId),
+                    cancellationToken);
+
+        if (expense is null)
+        {
+            return Fail(
+                "LAB_EXPENSE_NOT_FOUND",
+                "Lab expense was not found in the current doctor scope.");
+        }
+
+        var now = DateTime.UtcNow;
+        var amountChanged = expense.Amount != command.Amount;
+        var paymentStatusChanged = expense.IsPaid != command.IsPaid;
+
+        if (expense.IsPaid && (amountChanged || !command.IsPaid))
+        {
+            var financialDate =
+                expense.PaidAtUtc
+                ?? expense.ExpenseDateUtc;
+
+            if (!await _periodGuard.IsOpenAsync(
+                financialDate,
+                cancellationToken))
+            {
+                return Fail(
+                    "ACCOUNTING_PERIOD_CLOSED",
+                    "This lab expense belongs to a closed accounting period and its financial value cannot be changed.");
+            }
+        }
+
+        if (!expense.IsPaid && command.IsPaid)
+        {
+            if (!await _periodGuard.IsOpenAsync(
+                now,
+                cancellationToken))
+            {
+                return Fail(
+                    "ACCOUNTING_PERIOD_CLOSED",
+                    "Accounting period is closed.");
+            }
+        }
+
+        var before = new
+        {
+            expense.ServiceOrItemName,
+            expense.Amount,
+            expense.IsPaid,
+            expense.PaidAtUtc,
+            expense.PaidByUserId
+        };
+
+        expense.ServiceOrItemName =
+            CleanOptional(command.Description)
+            ?? "Lab expense";
+
+        expense.Amount = command.Amount;
+
+        if (paymentStatusChanged)
+        {
+            expense.IsPaid = command.IsPaid;
+            expense.PaidAtUtc =
+                command.IsPaid
+                    ? now
+                    : null;
+            expense.PaidByUserId =
+                command.IsPaid
+                    ? actorUserId
+                    : null;
+        }
+
+        _audit.Add(
+            actorUserId,
+            "LabExpenseUpdated",
+            nameof(LabExpense),
+            expense.Id.ToString(),
+            before,
+            new
+            {
+                expense.ServiceOrItemName,
+                expense.Amount,
+                expense.IsPaid,
+                expense.PaidAtUtc,
+                expense.PaidByUserId
+            },
+            ipAddress);
+
+        await _db.SaveChangesAsync(
+            cancellationToken);
+
+        return new LabWriteResult(
+            true,
+            null,
+            null,
+            expense.Id);
+    }
+
+    public async Task<LabWriteResult>
+        DeleteExpenseAsync(
+            DeleteLabExpenseCommand command,
+            IReadOnlyCollection<Guid> allowedDoctorIds,
+            Guid actorUserId,
+            string? ipAddress,
+            CancellationToken cancellationToken)
+    {
+        if (allowedDoctorIds.Count == 0)
+        {
+            return Fail(
+                "DOCTOR_SCOPE_DENIED",
+                "Doctor scope is not allowed.");
+        }
+
+        var expense =
+            await _db.LabExpenses
+                .SingleOrDefaultAsync(
+                    x =>
+                        x.Id == command.ExpenseId
+                        && allowedDoctorIds.Contains(x.DoctorId),
+                    cancellationToken);
+
+        if (expense is null)
+        {
+            return Fail(
+                "LAB_EXPENSE_NOT_FOUND",
+                "Lab expense was not found in the current doctor scope.");
+        }
+
+        if (expense.IsPaid)
+        {
+            var financialDate =
+                expense.PaidAtUtc
+                ?? expense.ExpenseDateUtc;
+
+            if (!await _periodGuard.IsOpenAsync(
+                financialDate,
+                cancellationToken))
+            {
+                return Fail(
+                    "ACCOUNTING_PERIOD_CLOSED",
+                    "This paid lab expense belongs to a closed accounting period and cannot be deleted.");
+            }
+        }
+
+        var before = new
+        {
+            expense.PatientId,
+            expense.DoctorId,
+            expense.VisitId,
+            expense.LabOrderId,
+            expense.ServiceOrItemName,
+            expense.Amount,
+            expense.ExpenseDateUtc,
+            expense.IsPaid,
+            expense.PaidAtUtc,
+            expense.PaidByUserId,
+            expense.CreatedByUserId,
+            expense.CreatedAtUtc
+        };
+
+        _audit.Add(
+            actorUserId,
+            "LabExpenseDeleted",
+            nameof(LabExpense),
+            expense.Id.ToString(),
+            before,
+            null,
+            ipAddress);
+
+        _db.LabExpenses.Remove(expense);
+
+        await _db.SaveChangesAsync(
+            cancellationToken);
+
+        return new LabWriteResult(
+            true,
+            null,
+            null,
+            expense.Id);
+    }
+
     private async Task<bool> VisitMatchesAsync(
         Guid visitId,
         Guid patientId,
