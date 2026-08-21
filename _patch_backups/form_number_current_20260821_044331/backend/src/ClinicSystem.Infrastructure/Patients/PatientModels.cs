@@ -50,7 +50,6 @@ public sealed record PagedPatientsDto(
 public sealed record PhoneMatchDto(
     Guid Id,
     string PatientCode,
-    string? FormNumber,
     string FullName,
     string PhoneNumber,
     bool IsBlacklisted
@@ -90,19 +89,4 @@ public sealed record PatientWriteResult(
     string? ErrorCode,
     string? ErrorMessage,
     Guid? PatientId
-);
-
-public sealed record PatientFormNumberingDto(
-    bool IsConfigured,
-    long? LiveStartNumber,
-    long? NextNumber,
-    long? HighestExistingNumber,
-    bool CanReconfigure
-);
-
-public sealed record PatientFormNumberingWriteResult(
-    bool Succeeded,
-    string? ErrorCode,
-    string? ErrorMessage,
-    PatientFormNumberingDto? Value
 );

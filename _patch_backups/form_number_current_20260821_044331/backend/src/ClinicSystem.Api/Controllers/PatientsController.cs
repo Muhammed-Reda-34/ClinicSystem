@@ -60,45 +60,6 @@ public sealed class PatientsController
                 cancellationToken));
     }
 
-    [HttpGet("form-numbering")]
-    [Authorize(Roles = "Owner")]
-    public async Task<IActionResult> GetFormNumbering(
-        CancellationToken cancellationToken)
-    {
-        return Ok(
-            await _patients.GetFormNumberingAsync(
-                cancellationToken));
-    }
-
-    [HttpPut("form-numbering")]
-    [Authorize(Roles = "Owner")]
-    public async Task<IActionResult> ConfigureFormNumbering(
-        ConfigurePatientFormNumberingRequest request,
-        CancellationToken cancellationToken)
-    {
-        var result =
-            await _patients.ConfigureFormNumberingAsync(
-                request.FirstLiveNumber,
-                User.GetUserIdOrThrow(),
-                HttpContext
-                    .Connection
-                    .RemoteIpAddress?
-                    .ToString(),
-                cancellationToken);
-
-        if (!result.Succeeded)
-        {
-            return BadRequest(
-                new
-                {
-                    code = result.ErrorCode,
-                    message = result.ErrorMessage
-                });
-        }
-
-        return Ok(result.Value);
-    }
-
     [HttpGet("{patientId:guid}")]
     [Authorize(
         Policy =

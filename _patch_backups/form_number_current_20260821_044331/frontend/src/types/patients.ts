@@ -43,7 +43,6 @@ export type PagedPatients = {
 export type PhoneMatch = {
   id: string;
   patientCode: string;
-  formNumber: string | null;
   fullName: string;
   phoneNumber: string;
   isBlacklisted: boolean;
@@ -70,12 +69,3 @@ export type UpdatePatientPayload =
   PatientPayload & {
     markBasicCompleted: boolean;
   };
-
-export type PatientFormNumbering = {
-  isConfigured: boolean;
-  liveStartNumber: number | null;
-  nextNumber: number | null;
-  highestExistingNumber: number | null;
-  canReconfigure: boolean;
-};
-

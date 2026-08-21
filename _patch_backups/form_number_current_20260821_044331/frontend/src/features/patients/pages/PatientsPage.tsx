@@ -3,7 +3,6 @@ import {
   useState,
 } from "react";
 import {
-  useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -26,8 +25,6 @@ import {
   useAuth,
 } from "../../auth/AuthContext";
 import {
-  configurePatientFormNumbering,
-  getPatientFormNumbering,
   getPatients,
 } from "../api/patientsApi";
 import {
@@ -51,9 +48,6 @@ export function PatientsPage() {
   const { hasRole } =
     useAuth();
 
-  const isOwner =
-    hasRole("Owner");
-
   const canEdit =
     hasRole("Owner")
     || hasRole("Doctor")
@@ -62,125 +56,6 @@ export function PatientsPage() {
 
   const queryClient =
     useQueryClient();
-
-  const numberingQuery =
-    useQuery({
-      queryKey: [
-        "patient-form-numbering",
-      ],
-      queryFn:
-        getPatientFormNumbering,
-      enabled: isOwner,
-      staleTime: 30_000,
-    });
-
-  const numberingMutation =
-    useMutation({
-      mutationFn:
-        configurePatientFormNumbering,
-      onSuccess: async () => {
-        await Promise.all([
-          queryClient
-            .invalidateQueries({
-              queryKey:
-                ["patient-form-numbering"],
-            }),
-          queryClient
-            .invalidateQueries({
-              queryKey:
-                ["patients"],
-            }),
-        ]);
-      },
-    });
-
-  function configureNumbering() {
-    const current =
-      numberingQuery.data;
-
-    if (
-      current?.isConfigured
-      && !current.canReconfigure
-    ) {
-      window.alert(
-        language === "ar"
-          ? `الترقيم مستخدم بالفعل. الرقم التالي هو ${current.nextNumber ?? "—"}.`
-          : `Live numbering is already in use. The next number is ${current.nextNumber ?? "—"}.`,
-      );
-      return;
-    }
-
-    const suggestion =
-      current?.nextNumber
-      ?? (
-        current?.highestExistingNumber
-        != null
-          ? current.highestExistingNumber
-            + 1
-          : null
-      );
-
-    const raw =
-      window.prompt(
-        language === "ar"
-          ? "اكتب أول رقم استمارة للمرضى الجدد. مثال: لو آخر استمارة ورقية 3876 اكتب 3877."
-          : "Enter the first form number for new/live patients. Example: if the last paper form is 3876, enter 3877.",
-        suggestion?.toString()
-        ?? "",
-      );
-
-    if (raw === null) {
-      return;
-    }
-
-    const firstLiveNumber =
-      Number(raw.trim());
-
-    if (
-      !Number.isSafeInteger(
-        firstLiveNumber,
-      )
-      || firstLiveNumber <= 0
-    ) {
-      window.alert(
-        language === "ar"
-          ? "اكتب رقمًا صحيحًا أكبر من صفر."
-          : "Enter a positive whole number.",
-      );
-      return;
-    }
-
-    numberingMutation.mutate(
-      firstLiveNumber,
-      {
-        onError: (error: unknown) => {
-          const message =
-            typeof error === "object"
-            && error !== null
-            && "response" in error
-              ? (
-                error as {
-                  response?: {
-                    data?: {
-                      message?: string;
-                    };
-                  };
-                }
-              ).response?.data?.message
-              : null;
-
-          window.alert(
-            message
-            ?? (
-              language === "ar"
-                ? "تعذر حفظ بداية الترقيم."
-                : "Could not save the numbering start."
-            ),
-          );
-        },
-      },
-    );
-  }
 
   const [search, setSearch] =
     useState("");
@@ -276,45 +151,13 @@ export function PatientsPage() {
         icon="patients"
         badge={scopeLabel}
         actions={
-          <>
-            {isOwner && (
-              <button
-                type="button"
-                className={styles.addButton}
-                disabled={
-                  numberingQuery.isLoading
-                  || numberingMutation.isPending
-                }
-                onClick={configureNumbering}
-                title={
-                  language === "ar"
-                    ? "ضبط أول رقم للمريض الجديد"
-                    : "Configure the first live patient form number"
-                }
-              >
-                <AppIcon name="reports" size={18} />
-                {numberingQuery.data?.isConfigured
-                  ? (
-                    language === "ar"
-                      ? `التالي ${numberingQuery.data.nextNumber ?? "—"}`
-                      : `Next ${numberingQuery.data.nextNumber ?? "—"}`
-                  )
-                  : (
-                    language === "ar"
-                      ? "ضبط الترقيم"
-                      : "Set numbering"
-                  )}
-              </button>
-            )}
-
-            <Link
-              to="/patients/new"
-              className={styles.addButton}
-            >
-              <AppIcon name="plus" size={18} />
-              {t("addPatient")}
-            </Link>
-          </>
+          <Link
+            to="/patients/new"
+            className={styles.addButton}
+          >
+            <AppIcon name="plus" size={18} />
+            {t("addPatient")}
+          </Link>
         }
         metrics={[
           {
@@ -404,9 +247,9 @@ export function PatientsPage() {
                     {t("patient")}
                   </th>
                   <th>
-                    {language === "ar"
-                      ? "رقم الاستمارة"
-                      : "Form number"}
+                    {t(
+                      "patientCode",
+                    )}
                   </th>
                   <th>
                     {t("phone")}
@@ -492,10 +335,15 @@ export function PatientsPage() {
                           >
                             <strong>
                               {
+                                patient.patientCode
+                              }
+                            </strong>
+                            <small>
+                              {
                                 patient.formNumber
                                 || "—"
                               }
-                            </strong>
+                            </small>
                           </div>
                         </td>
 
@@ -635,7 +483,8 @@ export function PatientsPage() {
                       {patient.fullName}
                     </Link>
                     <small>
-                      {language === "ar" ? "استمارة" : "Form"}: {patient.formNumber || "—"}
+                      {patient.patientCode}
+                      {patient.formNumber ? ` • ${patient.formNumber}` : ""}
                     </small>
                   </div>
                 </div>

@@ -52,7 +52,6 @@ public sealed class PreliminaryBookingService
                 x.PatientId,
                 x.DoctorId,
                 x.Patient!.PatientCode,
-                x.Patient.FormNumber,
                 (int?)x.Patient.ProfileStatus,
                 x.PatientName,
                 x.PhoneNumber,
@@ -110,12 +109,7 @@ public sealed class PreliminaryBookingService
                 "No doctor is available in the current scope.");
         }
 
-        var (
-            patient,
-            wasExistingPatient,
-            patientErrorCode,
-            patientErrorMessage
-        ) = await ResolvePatientAsync(
+        var (patient, wasExistingPatient) = await ResolvePatientAsync(
             name,
             command.PhoneNumber.Trim(),
             parsedPhone,
@@ -127,10 +121,8 @@ public sealed class PreliminaryBookingService
         if (patient is null)
         {
             return Failure(
-                patientErrorCode
-                    ?? "PATIENT_LINK_FAILED",
-                patientErrorMessage
-                    ?? "Could not create or link the patient record.");
+                "PATIENT_LINK_FAILED",
+                "Could not create or link the patient record.");
         }
 
         var booking = new PreliminaryBooking
@@ -334,7 +326,7 @@ public sealed class PreliminaryBookingService
                 continue;
             }
 
-            var (patient, _, _, _) = await ResolvePatientAsync(
+            var (patient, _) = await ResolvePatientAsync(
                 booking.PatientName,
                 booking.PhoneNumber,
                 parsedPhone,
@@ -367,12 +359,7 @@ public sealed class PreliminaryBookingService
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<(
-        Patient? Patient,
-        bool WasExisting,
-        string? ErrorCode,
-        string? ErrorMessage)>
-        ResolvePatientAsync(
+    private async Task<(Patient? Patient, bool WasExisting)> ResolvePatientAsync(
         string patientName,
         string phoneNumber,
         PhoneNumberParseResult parsedPhone,
@@ -389,11 +376,7 @@ public sealed class PreliminaryBookingService
         if (patient is not null)
         {
             EnsureDoctorAssignment(patient, targetDoctorId, actorUserId);
-            return (
-                patient,
-                true,
-                null,
-                null);
+            return (patient, true);
         }
 
         var createResult = await _patients.CreateAsync(
@@ -418,11 +401,7 @@ public sealed class PreliminaryBookingService
                     x => x.Id == createResult.PatientId.Value,
                     cancellationToken);
 
-            return (
-                patient,
-                false,
-                null,
-                null);
+            return (patient, false);
         }
 
         // Handles a race or an already existing duplicate gracefully.
@@ -434,18 +413,10 @@ public sealed class PreliminaryBookingService
         if (patient is not null)
         {
             EnsureDoctorAssignment(patient, targetDoctorId, actorUserId);
-            return (
-                patient,
-                true,
-                null,
-                null);
+            return (patient, true);
         }
 
-        return (
-            null,
-            false,
-            createResult.ErrorCode,
-            createResult.ErrorMessage);
+        return (null, false);
     }
 
     private async Task<Patient?> FindPatientByPhoneAsync(

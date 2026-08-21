@@ -411,7 +411,7 @@ export function AppointmentsPage() {
     const haystack = [
       item.patientName,
       item.phoneNumber,
-      item.formNumber ?? "",
+      item.patientCode ?? "",
     ]
       .join(" ")
       .toLocaleLowerCase();
@@ -522,9 +522,7 @@ export function AppointmentsPage() {
             </a>
 
             <div className={styles.patientMeta}>
-              <span>
-                {ar ? "استمارة" : "Form"}: {item.formNumber ?? "—"}
-              </span>
+              <span>{item.patientCode ?? (ar ? "بدون كود" : "No code")}</span>
               {doctorName && (
                 <span>{ar ? "د." : "Dr."} {doctorName}</span>
               )}
@@ -912,7 +910,7 @@ export function AppointmentsPage() {
                           : "Patient already registered"}
                     </strong>
                     <span>
-                      {existingPhoneMatch.fullName} · {ar ? "استمارة" : "Form"} {existingPhoneMatch.formNumber ?? "—"}
+                      {existingPhoneMatch.fullName} · {existingPhoneMatch.patientCode}
                     </span>
                   </div>
                 </div>

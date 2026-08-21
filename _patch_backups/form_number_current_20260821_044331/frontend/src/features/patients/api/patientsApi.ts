@@ -2,7 +2,6 @@ import { http } from "../../../lib/http";
 import type {
   PagedPatients,
   PatientDetails,
-  PatientFormNumbering,
   PatientPayload,
   PhoneCheck,
   UpdatePatientPayload,
@@ -77,27 +76,3 @@ export async function updatePatient(
     payload,
   );
 }
-
-export async function getPatientFormNumbering() {
-  const response =
-    await http.get<PatientFormNumbering>(
-      "/patients/form-numbering",
-    );
-
-  return response.data;
-}
-
-export async function configurePatientFormNumbering(
-  firstLiveNumber: number,
-) {
-  const response =
-    await http.put<PatientFormNumbering>(
-      "/patients/form-numbering",
-      {
-        firstLiveNumber,
-      },
-    );
-
-  return response.data;
-}
-

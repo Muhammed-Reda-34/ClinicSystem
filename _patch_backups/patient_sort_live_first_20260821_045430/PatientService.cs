@@ -108,58 +108,11 @@ public sealed class PatientService
         var totalCount =
             await query.CountAsync(cancellationToken);
 
-        var numbering =
-            await _db.PatientFormNumberCounters
-                .AsNoTracking()
-                .SingleOrDefaultAsync(
-                    x => x.Id == 1,
-                    cancellationToken);
-
-        IOrderedQueryable<Patient> orderedQuery;
-
-        if (numbering is null)
-        {
-            orderedQuery = query
-                .OrderBy(x => x.FormNumber == null)
-                .ThenBy(x => x.FormNumber!.Length)
-                .ThenBy(x => x.FormNumber)
-                .ThenBy(x => x.CreatedAtUtc);
-        }
-        else
-        {
-            var liveStartNumber =
-                numbering.LiveStartNumber;
-
-            orderedQuery = query
-                .OrderBy(x => x.FormNumber == null)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            >= liveStartNumber)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            >= liveStartNumber
-                            ? Convert.ToInt64(
-                                x.FormNumber)
-                            : long.MinValue)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            < liveStartNumber
-                            ? Convert.ToInt64(
-                                x.FormNumber)
-                            : long.MinValue)
-                .ThenBy(x => x.CreatedAtUtc);
-        }
-
-        var rows = await orderedQuery
+        var rows = await query
+            .OrderBy(x => x.FormNumber == null)
+            .ThenBy(x => x.FormNumber!.Length)
+            .ThenBy(x => x.FormNumber)
+            .ThenBy(x => x.CreatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(patient => new

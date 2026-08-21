@@ -20,8 +20,6 @@ public sealed class ClinicDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<Patient> Patients => Set<Patient>();
-    public DbSet<PatientFormNumberCounter> PatientFormNumberCounters =>
-        Set<PatientFormNumberCounter>();
     public DbSet<PatientDoctorAssignment> PatientDoctorAssignments =>
         Set<PatientDoctorAssignment>();
     public DbSet<PatientMedicalProfile> PatientMedicalProfiles =>
@@ -82,7 +80,6 @@ public sealed class ClinicDbContext
         ConfigureRefreshTokens(builder);
 
         ConfigurePatients(builder);
-        ConfigurePatientFormNumberCounters(builder);
         ConfigurePatientDoctorAssignments(builder);
         ConfigurePatientMedicalProfiles(builder);
 
@@ -291,17 +288,6 @@ public sealed class ClinicDbContext
             entity.HasIndex(x => x.FullName)
                 .HasMethod("gin")
                 .HasOperators("gin_trgm_ops");
-        });
-    }
-
-    private static void ConfigurePatientFormNumberCounters(ModelBuilder builder)
-    {
-        builder.Entity<PatientFormNumberCounter>(entity =>
-        {
-            entity.ToTable("PatientFormNumberCounters");
-            entity.HasKey(x => x.Id);
-            entity.Property(x => x.Id)
-                .ValueGeneratedNever();
         });
     }
 

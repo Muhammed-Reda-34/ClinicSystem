@@ -138,7 +138,7 @@ public sealed class PatientService
                         && Convert.ToInt64(
                             x.FormNumber)
                             >= liveStartNumber)
-                .ThenByDescending(
+                .ThenBy(
                     x =>
                         x.FormNumber != null
                         && Convert.ToInt64(
@@ -146,7 +146,7 @@ public sealed class PatientService
                             >= liveStartNumber
                             ? Convert.ToInt64(
                                 x.FormNumber)
-                            : long.MinValue)
+                            : long.MaxValue)
                 .ThenByDescending(
                     x =>
                         x.FormNumber != null

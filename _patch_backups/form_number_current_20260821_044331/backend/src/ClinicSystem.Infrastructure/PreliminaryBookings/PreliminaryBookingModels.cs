@@ -7,7 +7,6 @@ public sealed record PreliminaryBookingDto(
     Guid? PatientId,
     Guid? DoctorId,
     string? PatientCode,
-    string? FormNumber,
     int? PatientProfileStatus,
     string PatientName,
     string PhoneNumber,

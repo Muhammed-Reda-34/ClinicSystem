@@ -356,9 +356,7 @@ export function PatientForm({
                   >
                     {match.fullName}
                     {" — "}
-                    {match.formNumber
-                      ? `${language === "ar" ? "استمارة" : "Form"} ${match.formNumber}`
-                      : (language === "ar" ? "بدون رقم استمارة" : "No form number")}
+                    {match.patientCode}
                     {match.isBlacklisted
                       ? ` — ${t("blacklisted")}`
                       : ""}
@@ -476,35 +474,18 @@ export function PatientForm({
         <div className={styles.grid}>
           <label className={styles.field}>
             <span>
-              {mode === "create"
-                ? (
-                  language === "ar"
-                    ? "رقم الاستمارة للملف القديم"
-                    : "Historical file form number"
-                )
-                : t("formNumber")}
+              {t("formNumber")}
             </span>
 
             <input
               value={
                 values.formNumber
               }
-              inputMode="numeric"
-              maxLength={18}
-              placeholder={
-                mode === "create"
-                  ? (
-                    language === "ar"
-                      ? "اتركه فارغًا للمريض الجديد"
-                      : "Leave blank for a new/live patient"
-                  )
-                  : undefined
-              }
+              maxLength={80}
               onChange={event =>
                 setField(
                   "formNumber",
-                  event.target.value
-                    .replace(/\D/g, ""),
+                  event.target.value,
                 )
               }
             />

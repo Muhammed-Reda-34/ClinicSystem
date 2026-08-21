@@ -2052,3 +2052,336 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+   Patient profile layout refinement
+   - Keep Basic / Medical cards visually balanced
+   - Compact the visits history without hiding any information
+   - Prevent visit action/payment controls from overlapping
+   ================================================================ */
+
+/* First profile row: both information cards share the same visual height. */
+.grid {
+  align-items: stretch;
+}
+
+.grid > .card {
+  min-width: 0;
+}
+
+.grid > .card:first-child,
+.medicalCard {
+  height: 100%;
+}
+
+/* Keep the two information cards internally consistent. */
+.grid > .card:first-child .cardHeader,
+.medicalCard .cardHeader {
+  min-height: 52px;
+  margin-bottom: 14px;
+}
+
+.grid > .card:first-child .details {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.medicalDetails {
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 12px;
+}
+
+.medicalDetails > dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grid > .card:first-child .details > div,
+.medicalDetails > dl > div,
+.medicalNotes > div {
+  padding: 12px 13px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+/* Visits: denser layout through spacing and structure only; typography is preserved. */
+.visitsCard {
+  padding: 18px 20px;
+}
+
+.visitsCard .cardHeader {
+  margin-bottom: 14px;
+}
+
+.visitList {
+  gap: 12px;
+}
+
+.visitRow {
+  grid-template-columns: 124px minmax(0, 1fr) 176px;
+  grid-template-areas:
+    "date body money"
+    "actions body money"
+    "payments payments payments"
+    "collect collect collect";
+  align-items: start;
+  column-gap: 14px;
+  row-gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.visitRow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.065);
+}
+
+.visitDate {
+  grid-area: date;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 8px;
+  border-radius: 10px;
+}
+
+.visitActions {
+  grid-area: actions;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin: 0;
+}
+
+.editVisitButton,
+.deleteVisitButton {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.visitBody {
+  grid-area: body;
+  min-width: 0;
+  gap: 8px;
+  align-content: start;
+}
+
+.visitBody > strong {
+  line-height: 1.55;
+  white-space: normal;
+}
+
+.treatmentSessions {
+  gap: 7px;
+}
+
+.sessionRow {
+  padding: 9px 11px;
+  border-radius: 11px;
+}
+
+.treatmentFollowUpButton {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 11px;
+  border-radius: 10px;
+}
+
+.visitClinicalNotes {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-width: none;
+}
+
+.visitClinicalNotes > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border-radius: 11px;
+}
+
+.visitMoney {
+  grid-area: money;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.visitMoney strong {
+  margin: 4px 0;
+}
+
+.paymentHistory {
+  grid-area: payments;
+  min-width: 0;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.paymentList {
+  gap: 7px;
+}
+
+.paymentRow {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.paymentRow > button {
+  min-height: 36px;
+  padding: 7px 9px;
+  border-radius: 9px;
+}
+
+.collectPayment {
+  grid-area: collect;
+  grid-template-columns: minmax(170px, 1fr) minmax(130px, .72fr) minmax(150px, .82fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.collectPayment input,
+.collectPayment select,
+.collectPayment button {
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 10px;
+}
+
+.collectPayment button {
+  white-space: nowrap;
+}
+
+@media (max-width: 1050px) {
+  .visitRow {
+    grid-template-columns: 118px minmax(0, 1fr);
+    grid-template-areas:
+      "date body"
+      "actions body"
+      "money money"
+      "payments payments"
+      "collect collect";
+  }
+
+  .visitMoney {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    gap: 8px;
+    text-align: start;
+  }
+
+  .visitMoney strong {
+    margin: 0;
+    text-align: center;
+  }
+
+  .visitMoney small {
+    text-align: end;
+  }
+
+  .collectPayment {
+    grid-template-columns: minmax(160px, 1fr) minmax(120px, .8fr) minmax(145px, .9fr) auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .grid > .card:first-child,
+  .medicalCard {
+    height: auto;
+  }
+
+  .grid > .card:first-child .details,
+  .medicalDetails > dl,
+  .medicalNotes {
+    grid-template-columns: 1fr;
+  }
+
+  .visitsCard {
+    padding: 14px !important;
+  }
+
+  .visitRow {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "date"
+      "body"
+      "money"
+      "actions"
+      "payments"
+      "collect";
+    gap: 9px;
+    padding: 12px !important;
+  }
+
+  .visitDate {
+    width: fit-content;
+    min-width: 118px;
+  }
+
+  .visitActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visitClinicalNotes {
+    grid-template-columns: 1fr;
+  }
+
+  .visitMoney {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .collectPayment {
+    grid-template-columns: 1fr;
+  }
+
+  .collectPayment button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .visitActions,
+  .visitMoney {
+    grid-template-columns: 1fr;
+  }
+
+  .visitMoney,
+  .visitMoney strong,
+  .visitMoney small {
+    text-align: start;
+  }
+
+  .paymentRow,
+  .sessionRow {
+    align-items: stretch;
+  }
+
+  .treatmentFollowUpButton,
+  .paymentRow > button {
+    width: 100%;
+  }
+}
+
+/* Preserve the original label/value flow for full-width basic-information rows. */
+.grid > .card:first-child .details > .fullDetail {
+  display: block;
+  grid-template-columns: none;
+}
+
+.grid > .card:first-child .details > .fullDetail dt {
+  margin-bottom: 7px;
+}

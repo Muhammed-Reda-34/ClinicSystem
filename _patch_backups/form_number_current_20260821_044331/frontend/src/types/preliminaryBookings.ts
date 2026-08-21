@@ -7,7 +7,6 @@ export type PreliminaryBooking = {
   patientId: string | null;
   doctorId: string | null;
   patientCode: string | null;
-  formNumber: string | null;
   patientProfileStatus: number | null;
   patientName: string;
   phoneNumber: string;

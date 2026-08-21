@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Cryptography;
 using ClinicSystem.Domain.Entities;
 using ClinicSystem.Domain.Enums;
@@ -108,58 +107,8 @@ public sealed class PatientService
         var totalCount =
             await query.CountAsync(cancellationToken);
 
-        var numbering =
-            await _db.PatientFormNumberCounters
-                .AsNoTracking()
-                .SingleOrDefaultAsync(
-                    x => x.Id == 1,
-                    cancellationToken);
-
-        IOrderedQueryable<Patient> orderedQuery;
-
-        if (numbering is null)
-        {
-            orderedQuery = query
-                .OrderBy(x => x.FormNumber == null)
-                .ThenBy(x => x.FormNumber!.Length)
-                .ThenBy(x => x.FormNumber)
-                .ThenBy(x => x.CreatedAtUtc);
-        }
-        else
-        {
-            var liveStartNumber =
-                numbering.LiveStartNumber;
-
-            orderedQuery = query
-                .OrderBy(x => x.FormNumber == null)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            >= liveStartNumber)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            >= liveStartNumber
-                            ? Convert.ToInt64(
-                                x.FormNumber)
-                            : long.MinValue)
-                .ThenByDescending(
-                    x =>
-                        x.FormNumber != null
-                        && Convert.ToInt64(
-                            x.FormNumber)
-                            < liveStartNumber
-                            ? Convert.ToInt64(
-                                x.FormNumber)
-                            : long.MinValue)
-                .ThenBy(x => x.CreatedAtUtc);
-        }
-
-        var rows = await orderedQuery
+        var rows = await query
+            .OrderByDescending(x => x.UpdatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(patient => new
@@ -311,7 +260,6 @@ public sealed class PatientService
             {
                 x.Id,
                 x.PatientCode,
-                x.FormNumber,
                 x.FullName,
                 x.PhoneNumber,
                 x.IsBlacklisted,
@@ -332,7 +280,6 @@ public sealed class PatientService
                 new PhoneMatchDto(
                     x.Id,
                     x.PatientCode,
-                    x.FormNumber,
                     x.FullName,
                     x.PhoneNumber,
                     x.IsBlacklisted))
@@ -387,20 +334,11 @@ public sealed class PatientService
             .GetCandidates(phone)
             .ToArray();
 
-        var manualFormNumberResult =
-            NormalizeManualFormNumber(command.FormNumber);
-
-        if (!manualFormNumberResult.Succeeded)
-        {
-            return new PatientWriteResult(
-                false,
-                manualFormNumberResult.ErrorCode,
-                manualFormNumberResult.ErrorMessage,
-                null);
-        }
-
         var formNumber =
-            manualFormNumberResult.FormNumber;
+            string.IsNullOrWhiteSpace(
+                command.FormNumber)
+            ? null
+            : command.FormNumber.Trim();
 
         if (
             command.DateOfBirth
@@ -424,23 +362,6 @@ public sealed class PatientService
                 "DOCTOR_REQUIRED",
                 "Select at least one doctor.",
                 null);
-        }
-
-        if (formNumber is not null)
-        {
-            var manualRangeError =
-                await ValidateManualHistoricalFormNumberAsync(
-                    formNumber,
-                    cancellationToken);
-
-            if (manualRangeError is not null)
-            {
-                return new PatientWriteResult(
-                    false,
-                    manualRangeError.Value.ErrorCode,
-                    manualRangeError.Value.ErrorMessage,
-                    null);
-            }
         }
 
         if (
@@ -476,89 +397,6 @@ public sealed class PatientService
                 "POTENTIAL_DUPLICATE",
                 "A patient with the same name and phone already exists.",
                 null);
-        }
-
-        await using var numberingTransaction =
-            formNumber is null
-                ? await _db.Database.BeginTransactionAsync(
-                    cancellationToken)
-                : null;
-
-        if (formNumber is null)
-        {
-            var counterRows =
-                await _db.PatientFormNumberCounters
-                    .FromSqlRaw(
-                        """
-                        SELECT *
-                        FROM "PatientFormNumberCounters"
-                        WHERE "Id" = 1
-                        FOR UPDATE
-                        """)
-                    .ToListAsync(
-                        cancellationToken);
-
-            var counter =
-                counterRows.SingleOrDefault();
-
-            if (counter is null)
-            {
-                return new PatientWriteResult(
-                    false,
-                    "FORM_NUMBERING_NOT_CONFIGURED",
-                    "Patient form numbering is not configured yet.",
-                    null);
-            }
-
-            var nextNumber =
-                counter.NextNumber;
-
-            while (true)
-            {
-                var candidate =
-                    nextNumber.ToString(
-                        CultureInfo.InvariantCulture);
-
-                var alreadyUsed =
-                    await _db.Patients.AnyAsync(
-                        x => x.FormNumber == candidate,
-                        cancellationToken);
-
-                if (!alreadyUsed)
-                {
-                    formNumber = candidate;
-                    break;
-                }
-
-                if (nextNumber == long.MaxValue)
-                {
-                    return new PatientWriteResult(
-                        false,
-                        "FORM_NUMBER_RANGE_EXHAUSTED",
-                        "No additional patient form numbers are available.",
-                        null);
-                }
-
-                nextNumber++;
-            }
-
-            if (nextNumber == long.MaxValue)
-            {
-                return new PatientWriteResult(
-                    false,
-                    "FORM_NUMBER_RANGE_EXHAUSTED",
-                    "No additional patient form numbers are available.",
-                    null);
-            }
-
-            counter.NextNumber =
-                nextNumber + 1;
-
-            counter.UpdatedAtUtc =
-                DateTime.UtcNow;
-
-            counter.UpdatedByUserId =
-                actorUserId;
         }
 
         var patient = new Patient
@@ -646,12 +484,6 @@ public sealed class PatientService
         await _db.SaveChangesAsync(
             cancellationToken);
 
-        if (numberingTransaction is not null)
-        {
-            await numberingTransaction.CommitAsync(
-                cancellationToken);
-        }
-
         return new PatientWriteResult(
             true,
             null,
@@ -692,43 +524,11 @@ public sealed class PatientService
                 null);
         }
 
-        var manualFormNumberResult =
-            NormalizeManualFormNumber(command.FormNumber);
-
-        if (!manualFormNumberResult.Succeeded)
-        {
-            return new PatientWriteResult(
-                false,
-                manualFormNumberResult.ErrorCode,
-                manualFormNumberResult.ErrorMessage,
-                null);
-        }
-
         var formNumber =
-            manualFormNumberResult.FormNumber;
-
-        if (
-            formNumber is not null
-            && !string.Equals(
-                formNumber,
-                patient.FormNumber,
-                StringComparison.Ordinal)
-        )
-        {
-            var manualRangeError =
-                await ValidateManualHistoricalFormNumberAsync(
-                    formNumber,
-                    cancellationToken);
-
-            if (manualRangeError is not null)
-            {
-                return new PatientWriteResult(
-                    false,
-                    manualRangeError.Value.ErrorCode,
-                    manualRangeError.Value.ErrorMessage,
-                    null);
-            }
-        }
+            string.IsNullOrWhiteSpace(
+                command.FormNumber)
+            ? null
+            : command.FormNumber.Trim();
 
         if (
             formNumber is not null
@@ -994,275 +794,6 @@ public sealed class PatientService
                                 x.DoctorId,
                                 x.FullName))
                     .ToArray());
-    }
-
-    public async Task<PatientFormNumberingDto>
-        GetFormNumberingAsync(
-            CancellationToken cancellationToken)
-    {
-        var counter =
-            await _db.PatientFormNumberCounters
-                .AsNoTracking()
-                .SingleOrDefaultAsync(
-                    x => x.Id == 1,
-                    cancellationToken);
-
-        var highestExisting =
-            await GetHighestExistingNumericFormNumberAsync(
-                cancellationToken);
-
-        return new PatientFormNumberingDto(
-            counter is not null,
-            counter?.LiveStartNumber,
-            counter?.NextNumber,
-            highestExisting,
-            counter is null
-            || counter.NextNumber
-                == counter.LiveStartNumber);
-    }
-
-    public async Task<PatientFormNumberingWriteResult>
-        ConfigureFormNumberingAsync(
-            long firstLiveNumber,
-            Guid actorUserId,
-            string? ipAddress,
-            CancellationToken cancellationToken)
-    {
-        if (
-            firstLiveNumber <= 0
-            || firstLiveNumber == long.MaxValue
-        )
-        {
-            return NumberingFailure(
-                "INVALID_FIRST_LIVE_NUMBER",
-                "The first live form number must be a positive whole number.");
-        }
-
-        var highestExisting =
-            await GetHighestExistingNumericFormNumberAsync(
-                cancellationToken);
-
-        if (
-            highestExisting is not null
-            && firstLiveNumber
-                <= highestExisting.Value
-        )
-        {
-            return NumberingFailure(
-                "FIRST_LIVE_NUMBER_TOO_LOW",
-                $"The first live form number must be greater than the highest existing form number ({highestExisting.Value}).");
-        }
-
-        var counter =
-            await _db.PatientFormNumberCounters
-                .SingleOrDefaultAsync(
-                    x => x.Id == 1,
-                    cancellationToken);
-
-        if (
-            counter is not null
-            && counter.NextNumber
-                != counter.LiveStartNumber
-        )
-        {
-            return NumberingFailure(
-                "FORM_NUMBERING_ALREADY_IN_USE",
-                "Live form numbering has already been used and can no longer be reset.");
-        }
-
-        var oldValues =
-            counter is null
-                ? null
-                : new
-                {
-                    counter.LiveStartNumber,
-                    counter.NextNumber
-                };
-
-        if (counter is null)
-        {
-            counter =
-                new PatientFormNumberCounter
-                {
-                    Id = 1
-                };
-
-            _db.PatientFormNumberCounters
-                .Add(counter);
-        }
-
-        counter.LiveStartNumber =
-            firstLiveNumber;
-
-        counter.NextNumber =
-            firstLiveNumber;
-
-        counter.UpdatedAtUtc =
-            DateTime.UtcNow;
-
-        counter.UpdatedByUserId =
-            actorUserId;
-
-        _audit.Add(
-            actorUserId,
-            "PatientFormNumberingConfigured",
-            nameof(PatientFormNumberCounter),
-            "1",
-            oldValues,
-            new
-            {
-                counter.LiveStartNumber,
-                counter.NextNumber
-            },
-            ipAddress);
-
-        await _db.SaveChangesAsync(
-            cancellationToken);
-
-        return new PatientFormNumberingWriteResult(
-            true,
-            null,
-            null,
-            new PatientFormNumberingDto(
-                true,
-                counter.LiveStartNumber,
-                counter.NextNumber,
-                highestExisting,
-                true));
-    }
-
-    private async Task<(
-        string ErrorCode,
-        string ErrorMessage)?>
-        ValidateManualHistoricalFormNumberAsync(
-            string formNumber,
-            CancellationToken cancellationToken)
-    {
-        var counter =
-            await _db.PatientFormNumberCounters
-                .AsNoTracking()
-                .SingleOrDefaultAsync(
-                    x => x.Id == 1,
-                    cancellationToken);
-
-        if (counter is null)
-        {
-            return null;
-        }
-
-        var numericValue =
-            long.Parse(
-                formNumber,
-                CultureInfo.InvariantCulture);
-
-        if (
-            numericValue
-            >= counter.LiveStartNumber
-        )
-        {
-            return (
-                "FORM_NUMBER_RESERVED_FOR_LIVE_PATIENTS",
-                $"Manual historical form numbers must be lower than {counter.LiveStartNumber}.");
-        }
-
-        return null;
-    }
-
-    private async Task<long?>
-        GetHighestExistingNumericFormNumberAsync(
-            CancellationToken cancellationToken)
-    {
-        var values =
-            await _db.Patients
-                .AsNoTracking()
-                .Where(
-                    x => x.FormNumber != null)
-                .Select(
-                    x => x.FormNumber!)
-                .ToListAsync(
-                    cancellationToken);
-
-        long? highest = null;
-
-        foreach (var value in values)
-        {
-            if (
-                long.TryParse(
-                    value,
-                    NumberStyles.None,
-                    CultureInfo.InvariantCulture,
-                    out var numeric)
-                && numeric > 0
-                && (
-                    highest is null
-                    || numeric > highest.Value
-                )
-            )
-            {
-                highest = numeric;
-            }
-        }
-
-        return highest;
-    }
-
-    private static (
-        bool Succeeded,
-        string? FormNumber,
-        string? ErrorCode,
-        string? ErrorMessage)
-        NormalizeManualFormNumber(
-            string? value)
-    {
-        if (
-            string.IsNullOrWhiteSpace(
-                value)
-        )
-        {
-            return (
-                true,
-                null,
-                null,
-                null);
-        }
-
-        var trimmed =
-            value.Trim();
-
-        if (
-            !long.TryParse(
-                trimmed,
-                NumberStyles.None,
-                CultureInfo.InvariantCulture,
-                out var numeric)
-            || numeric <= 0
-        )
-        {
-            return (
-                false,
-                null,
-                "INVALID_FORM_NUMBER",
-                "Form number must be a positive whole number.");
-        }
-
-        return (
-            true,
-            numeric.ToString(
-                CultureInfo.InvariantCulture),
-            null,
-            null);
-    }
-
-    private static PatientFormNumberingWriteResult
-        NumberingFailure(
-            string code,
-            string message)
-    {
-        return new PatientFormNumberingWriteResult(
-            false,
-            code,
-            message,
-            null);
     }
 
     private static string GeneratePatientCode()
